@@ -1,20 +1,40 @@
-﻿DEFINE TABLE users SCHEMAFULL;
+﻿REMOVE DATABASE manger_dog;
+DEFINE DATABASE manger_dog;
+
+DEFINE TABLE users SCHEMAFULL;
 DEFINE FIELD email ON TABLE users TYPE string;
 DEFINE FIELD username ON TABLE users TYPE string;
 DEFINE FIELD password ON TABLE users TYPE string;
 DEFINE FIELD registration_date ON TABLE users TYPE datetime DEFAULT time::now();
 DEFINE FIELD selected_preference ON TABLE users TYPE option<record<preferences>>;
+DEFINE INDEX email_idx ON TABLE users COLUMNS email UNIQUE;
 
 DEFINE TABLE accounts SCHEMAFULL;
 DEFINE FIELD title ON TABLE accounts TYPE string;
-DEFINE FIELD user_id ON TABLE accounts TYPE record<users>;
-DEFINE FIELD currency ON TABLE accounts TYPE record<currencies>;
+DEFINE FIELD user_id ON TABLE accounts TYPE option<record<users>>;
+DEFINE FIELD group_id ON TABLE accounts TYPE option<record<groups>>;
+DEFINE FIELD currency_id ON TABLE accounts TYPE record<currencies>;
 DEFINE FIELD balance ON TABLE accounts TYPE number;
 
-DEFINE TABLE categories SCHEMAFULL;
-DEFINE FIELD account_id ON TABLE categories TYPE record<users>;
-DEFINE FIELD title ON TABLE categories TYPE string;
-DEFINE FIELD description ON TABLE categories TYPE string;
+DEFINE TABLE groups SCHEMAFULL;
+DEFINE FIELD owner_id ON TABLE groups TYPE record<users>;
+DEFINE FIELD metadata ON TABLE groups TYPE record<metadata>;
+
+DEFINE TABLE group_members SCHEMAFULL;
+DEFINE FIELD group_id ON TABLE group_members TYPE record<groups>;
+DEFINE FIELD role_id ON TABLE group_members TYPE record<group_roles>;
+DEFINE FIELD member_id ON TABLE group_members TYPE record<users>;
+
+DEFINE TABLE group_roles SCHEMAFULL;
+DEFINE FIELD identifier ON TABLE group_roles TYPE string;
+INSERT INTO group_roles (identifier) VALUES ('owner'), ('member'), ('readonly');
+
+DEFINE TABLE invitations SCHEMAFULL;
+DEFINE FIELD sender_id ON TABLE invitations TYPE record<users>;
+DEFINE FIELD receiver_id ON TABLE invitations TYPE record<users>;
+DEFINE FIELD group_id ON TABLE invitations TYPE record<groups>;
+DEFINE FIELD group_role_id ON TABLE invitations TYPE record<group_roles>;
+DEFINE FIELD message ON TABLE invitations TYPE string;
 
 DEFINE TABLE tags SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE tags TYPE record<users>;
@@ -22,6 +42,7 @@ DEFINE FIELD metadata_id ON TABLE tags TYPE record<metadata>;
 
 DEFINE TABLE financial_goals SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE financial_goals TYPE record<users>;
+DEFINE FIELD currency_id ON TABLE financial_goals TYPE record<currencies>;
 DEFINE FIELD target_income ON TABLE financial_goals TYPE number;
 DEFINE FIELD start_date ON TABLE financial_goals TYPE datetime;
 DEFINE FIELD end_date ON TABLE financial_goals TYPE datetime;
@@ -44,6 +65,7 @@ DEFINE FIELD metadata_id ON TABLE transfers TYPE record<metadata>;
 
 DEFINE TABLE stable_incomes SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE stable_incomes TYPE record<users>;
+DEFINE FIELD currency_id ON TABLE stable_incomes TYPE record<currencies>;
 DEFINE FIELD amount_per_month ON TABLE stable_incomes TYPE number;
 DEFINE FIELD start_date ON TABLE stable_incomes TYPE datetime;
 DEFINE FIELD end_date ON TABLE stable_incomes TYPE datetime;
@@ -51,14 +73,12 @@ DEFINE FIELD last_update_date ON TABLE stable_incomes TYPE datetime;
 DEFINE FIELD metadata_id ON TABLE stable_incomes TYPE record<metadata>;
 
 DEFINE TABLE stable_income_incomes SCHEMAFULL;
-DEFINE FIELD stable_income_id ON TABLE stable_incomes_incomes TYPE record<stable_incomes>;
-DEFINE FIELD account_id ON TABLE accounts TYPE record<accounts>;
-DEFINE FIELD date ON TABLE stable_incomes_incomes TYPE datetime;
-DEFINE FIELD amount ON TABLE stable_incomes_incomes TYPE number;
-DEFINE FIELD metadata_id ON TABLE stable_income_incomes TYPE record<metadata>;
+DEFINE FIELD stable_income_id ON TABLE stable_income_incomes TYPE record<stable_incomes>;
+DEFINE FIELD transaction_id ON TABLE stable_income_incomes TYPE record<transactions>;
 
 DEFINE TABLE loans SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE loans TYPE record<users>;
+DEFINE FIELD currency_id ON TABLE loans TYPE record<currencies>;
 DEFINE FIELD principal_amount ON TABLE loans TYPE number;
 DEFINE FIELD interest_rate ON TABLE loans TYPE number;
 DEFINE FIELD start_date ON TABLE loans TYPE datetime;
@@ -77,21 +97,15 @@ INSERT INTO compounding_frequencies (identifier) VALUES ('annually'), ('semi_ann
 
 DEFINE TABLE loan_payments SCHEMAFULL;
 DEFINE FIELD loan_id ON TABLE loan_payments TYPE record<loans>;
-DEFINE FIELD account_id ON TABLE loan_payments TYPE record<accounts>;
-DEFINE FIELD number ON TABLE loan_payments TYPE int;
-DEFINE FIELD date ON TABLE loan_payments TYPE datetime;
-DEFINE FIELD payment_amount ON TABLE loan_payments TYPE number;
-DEFINE FIELD principal_amount ON TABLE loan_payments TYPE number;
-DEFINE FIELD remaining_amount ON TABLE loan_payments TYPE number;
-DEFINE FIELD payment_type ON TABLE loan_payments TYPE record<loan_payment_types>;
-DEFINE FIELD metadata_id ON TABLE loan_payments TYPE record<metadata>;
+DEFINE FIELD transaction_id ON TABLE loan_payments TYPE record<transactions>;
 
-DEFINE TABLE loan_payment_types SCHEMAFULL;
-DEFINE FIELD identifier ON TABLE loan_payment_types TYPE string;
-INSERT INTO loan_payment_types (identifier) VALUES ('scheduled'), ('extra'), ('minimum');
+-- DEFINE TABLE loan_payment_types SCHEMAFULL;
+-- DEFINE FIELD identifier ON TABLE loan_payment_types TYPE string;
+-- INSERT INTO loan_payment_types (identifier) VALUES ('scheduled'), ('extra'), ('minimum');
 
 DEFINE TABLE investments SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE investments TYPE record<users>;
+DEFINE FIELD currency_id ON TABLE investments TYPE record<currencies>;
 DEFINE FIELD type ON TABLE investments TYPE record<investment_types>;
 DEFINE FIELD compounding_frequency ON TABLE investments TYPE record<compounding_frequencies>;
 DEFINE FIELD principal_amount ON TABLE investments TYPE number;
@@ -107,7 +121,7 @@ DEFINE FIELD identifier ON TABLE investment_types TYPE string;
 INSERT INTO investment_types (identifier) VALUES ('stocks'), ('bonds'), ('real_estate'), ('mutual_funds'), ('etfs'), ('cryptocurrency'), ('precious_metals'), ('commodities'), ('p2p_lending');
 
 DEFINE TABLE risk_levels SCHEMAFULL;
-DEFINE FIELD identifier ON TABLE interest_rate_types TYPE string;
+DEFINE FIELD identifier ON TABLE risk_levels TYPE string;
 INSERT INTO interest_rate_types (identifier) VALUES ('low'), ('moderate'), ('high'), ('very_high');
 
 DEFINE TABLE investment_returns SCHEMAFULL;
@@ -145,7 +159,7 @@ INSERT INTO currencies (identifier) VALUES ("USD"), ("EUR"), ("GBP"), ("JPY"), (
 
 DEFINE TABLE preferences SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE preferences TYPE record<users>;
-DEFINE FIELD default_currency ON TABLE preferences TYPE record<currencies>;
+DEFINE FIELD default_currency_id ON TABLE preferences TYPE record<currencies>;
 -- DEFINE FIELD theme ON TABLE preferences TYPE record<color_palettes>;
 DEFINE FIELD language ON TABLE preferences TYPE record<languages>;
 
@@ -188,9 +202,19 @@ DEFINE FIELD auto_distribution_id ON TABLE transfers_auto_distributions TYPE rec
 DEFINE TABLE transactions_auto_distributions SCHEMAFULL;
 DEFINE FIELD auto_distribution_id ON TABLE transactions_auto_distributions TYPE record<auto_distributions>;
 
+DEFINE TABLE sessions SCHEMAFULL;
+DEFINE FIELD session_id ON TABLE sessions TYPE string;
+DEFINE FIELD user_id ON TABLE sessions TYPE record<users>;
+DEFINE FIELD expiration_date ON TABLE sessions TYPE datetime;
+DEFINE INDEX user_id_idx ON TABLE sessions COLUMNS user_id;
+DEFINE INDEX session_id_idx ON TABLE sessions COLUMNS session_id;
+DEFINE INDEX session_id_user_id_idx ON TABLE sessions COLUMNS session_id, user_id UNIQUE;
+DEFINE INDEX expiration_date_idx ON TABLE sessions COLUMNS expiration_date;
+
 -- TODO: color palettes
 -- TODO: color palettes in preferences
 -- TODO: custom color palettes (same table as color palettes, but with no owner)
+-- TODO: keymapping
 
 DEFINE TABLE financial_goals_investments SCHEMAFULL;
 DEFINE FIELD financial_goal_id ON TABLE financial_goals_investments TYPE record<financial_goals>;
