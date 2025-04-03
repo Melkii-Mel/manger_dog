@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "actix-surreal-starter",
+    "proc_macros",
+    "server",
+    "web_client",
+]
+resolver = "2"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1

@@ -1,0 +1,3 @@
+SERVER_ADDRESS=127.0.0.1:8080
+DB_ADDRESS=localhost:8000
+SECRET_KEY=super_secret_key

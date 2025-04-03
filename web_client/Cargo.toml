@@ -1,0 +1,16 @@
+[package]
+name = "web_client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+yew = { version = "0.21.0", features = ["csr"] }
+gloo-net = "0.6.0"
+wasm-bindgen = "0.2.100"
+web-sys = "0.3.77"
+yewdux = "0.11.0"
+
+#Shared
+serde = "1.0.219"
+chrono = "0.4.40"
+thiserror = "2.0.12"

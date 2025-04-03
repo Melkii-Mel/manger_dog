@@ -1,0 +1,20 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.10.2"
+actix-files = "0.6.6"
+surrealdb = "2.2.1"
+actix-extended-session = { version = "0.2.0", features = ["cookie-session"] }
+rand = "0.9.0"
+faker_rand = "0.1.1"
+actix-surreal-starter = { path = "../actix-surreal-starter" }
+
+
+
+#Shared
+serde = { version = "1.0.219", features = ["derive"] }
+chrono = "0.4.40"
+thiserror = "2.0.12"
