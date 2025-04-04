@@ -1,6 +1,5 @@
 mod api;
 mod api_datatypes;
-mod server_setup_helpers;
 
 use crate::api_datatypes::{Creds, User};
 use actix_surreal_starter::{
