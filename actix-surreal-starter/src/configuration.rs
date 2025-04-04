@@ -208,7 +208,7 @@ queries_config!(QueriesConfig (db_access_config: &DbAccessConfig)
     }
 });
 
-list!(EnvFilesConfig[".env", ".configenv"]);
+list!(EnvFilesConfig[".env"]);
 
 #[derive(Default)]
 pub struct NamesConfig {
