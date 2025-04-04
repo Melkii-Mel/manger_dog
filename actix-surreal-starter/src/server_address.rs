@@ -35,8 +35,8 @@ pub fn get_server_address<T>(env_values: &EnvValues) -> Result<(String, u16), Se
             let port: &Result<&str, VarError> = &env_values.port;
             let port = port.as_ref().map_err(|e_port| {
                 ServerAddressError::MissingEnvironmentVariables(
-                    format!("{:?}", e_port),
                     format!("{:?}", e_address),
+                    format!("{:?}", e_port),
                 )
             })?;
             Ok((
