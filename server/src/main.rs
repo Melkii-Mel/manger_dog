@@ -1,18 +1,17 @@
-mod api;
 mod api_datatypes;
 
-use crate::api_datatypes::{Creds, User};
+use crate::api_datatypes::{configure_endpoints, Creds, User};
 use actix_surreal_starter::{
     build_register_config, serve_app, ActixSurrealStarter, LoginData, NamesConfig, RegisterConfig,
     ServerStarter,
 };
 use actix_web::web::Json;
-use actix_web::{get, post, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::method::Query;
 
 #[get("/hello_world")]
-async fn index() -> impl Responder {
+async fn hello_world() -> impl Responder {
     "Hello, World!"
 }
 
@@ -34,11 +33,19 @@ async fn main() -> std::io::Result<()> {
             "selected_preference": selected_preference,
         }),
         |cfg| {
-            cfg.service(serve_app(
-                "/a/",
-                "../web_client/dist",
-                true, /*Change to false on deploy*/
-            ))
+            cfg.service(hello_world)
+                .service(increment)
+                .route(
+                    "/another_hello_world/",
+                    web::get().to(|http_request: HttpRequest| {
+                        async move {
+                            format!("Hello enclosed world, you sent me a request to the following path {:?}", http_request.path())
+                        }
+                    }),
+                )
+                .service(serve_app("/a/", "../web_client/dist"));
+            configure_endpoints(cfg);
+            cfg
         },
     )
     .await

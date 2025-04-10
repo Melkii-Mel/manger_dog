@@ -7,17 +7,19 @@ mod authentication;
 mod endpoint_error;
 mod helper_implementations;
 mod server_address;
+pub mod crud_ops;
+pub mod query_builder;
 
-pub use crate::authentication::LoginData;
-pub use crate::authentication::RegisterConfig;
+pub use crate::authentication::{LoginData, RegisterConfig, UserId};
 pub use crate::endpoint_error::EndpointError;
 pub use configuration::*;
+pub use proc_macros::error_type;
 
-use crate::authentication::{get_user, login, logout, refresh, register};
+use crate::authentication::{get_userdata, login, logout, refresh, register};
 use crate::server_address::get_server_address;
 use crate::session::cleanup_expired_sessions;
 use actix_files::Files;
-use actix_web::web::ServiceConfig;
+use actix_web::web::{Json, ServiceConfig};
 use actix_web::{web, App, HttpRequest, HttpServer};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -30,6 +32,7 @@ use surrealdb::opt::IntoQuery;
 use surrealdb::Surreal;
 
 pub static DB: LazyLock<Surreal<Client>> = LazyLock::new(Surreal::init);
+
 
 //TODO: middleware for checking access token validity and expiration
 
@@ -91,7 +94,7 @@ pub trait ServerStarter<TCreds> {
                 .route(
                     "/login",
                     web::post().to(
-                        enclose!((queries_config, session_config) move |creds: web::Json<TCreds>| {
+                        enclose!((queries_config, session_config) move |creds: Json<TCreds>| {
                         login(
                             creds,
                             queries_config.clone(),
@@ -103,7 +106,7 @@ pub trait ServerStarter<TCreds> {
                 .route(
                     "/register",
                     web::post().to(
-                        enclose!((queries_config, session_config, register_config) move |creds| {
+                        enclose!((queries_config, session_config, register_config) move |creds: Json<TUserdata>| {
                         register(
                             queries_config.clone(),
                             session_config.clone(),
@@ -132,7 +135,7 @@ pub trait ServerStarter<TCreds> {
                 .route(
                     "/me",
                     web::get().to(enclose!((queries_config, session_config) move |http_request: HttpRequest| {
-                    get_user::<TUserdata>(http_request, session_config.clone(), queries_config.clone())
+                    get_userdata::<TUserdata>(http_request, session_config.clone(), queries_config.clone())
                 })),
                 )
         })
@@ -176,12 +179,12 @@ async fn db_connect(
     Ok(())
 }
 
-pub fn serve_app(mount_path: &str, dist_dir: &str, is_debug: bool) -> Files {
+pub fn serve_app(mount_path: &str, dist_dir: &str) -> Files {
     if let Err(e) = std::fs::read_dir(dist_dir) {
         println!("Failed to read directory: {}\n{}", dist_dir, e);
     }
     let mut files = Files::new(mount_path, dist_dir).index_file("index.html");
-    if is_debug {
+    if cfg!(debug_assertions) {
         files = files.show_files_listing();
     }
     files

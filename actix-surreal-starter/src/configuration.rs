@@ -1,5 +1,6 @@
 use std::env;
 use std::env::VarError;
+use once_cell::sync::OnceCell;
 use time::Duration;
 
 macro_rules! get_env {
@@ -160,7 +161,7 @@ tables!(DbAccessConfig {
 
 queries_config!(QueriesConfig (db_access_config: &DbAccessConfig)
 {
-    get_user_id_and_password_by_login(users): "SELECT id, {} FROM {} WHERE {} = $login" => {
+    get_user_id_and_password_by_login(users): "SELECT id, {} as password FROM {} WHERE {} = $login" => {
         password,
         table_name,
         login,
@@ -216,4 +217,28 @@ pub struct NamesConfig {
     pub db_access_config: DbAccessConfig,
     pub session_config: SessionConfig,
     pub env_files_config: EnvFilesConfig,
+}
+
+static NAMES_CONFIG_INSTANCE: OnceCell<NamesConfig> = OnceCell::new();
+
+impl NamesConfig {
+    pub fn instance() -> &'static NamesConfig {
+        NAMES_CONFIG_INSTANCE.get().expect("Internal error: Config instance is not initialized. Call NamesConfig::initialize(value) at the start of the program")
+    }
+
+    pub fn initialize(value: NamesConfig) {
+        NAMES_CONFIG_INSTANCE.set(value).map_err(|_| "Config Instance is already initialized.").unwrap()
+    }
+}
+
+static QUERIES_CONFIG_INSTANCE: OnceCell<QueriesConfig> = OnceCell::new();
+
+impl QueriesConfig {
+    pub fn instance() -> &'static QueriesConfig {
+        QUERIES_CONFIG_INSTANCE.get().expect("Internal error: Config instance is not initialized. Call NamesConfig::initialize(value) at the start of the program")
+    }
+
+    pub fn initialize(value: QueriesConfig) {
+        QUERIES_CONFIG_INSTANCE.set(value).map_err(|_| "Config Instance is already initialized.").unwrap()
+    }
 }

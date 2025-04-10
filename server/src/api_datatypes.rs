@@ -1,11 +1,100 @@
+use crate::Json;
+use actix_surreal_starter::crud_ops::CrudError;
+use actix_web::web;
+use actix_web::web::ServiceConfig;
 use chrono::{DateTime, Utc};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
+use actix_surreal_starter::query_builder::QueryBuilder;
+use actix_surreal_starter::UserId;
 
-macro_rules! api_structs {
-    ($($name:ident { $($field:ident: $type:ty),*$(,)* })*) => {
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct WithId<T> {
+    pub id: String,
+    pub inner: T,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct Id(String);
+
+impl<T: DeserializeOwned> WithId<T> {
+    pub fn wrap(value: serde_json::Value) -> Option<WithId<T>> {
+        let mut obj = value.as_object()?.clone();
+
+        let id = obj.remove("id")?.as_str()?.to_string();
+        let inner = serde_json::from_value(serde_json::Value::Object(obj)).ok()?;
+
+        Some(WithId { id, inner })
+    }
+}
+
+pub trait ApiEntity: Sized + Debug + DeserializeOwned + Serialize + Default + Clone {
+    fn paths() -> &'static [&'static str];
+    fn table_name() -> &'static str;
+    fn query_builder() -> QueryBuilder;
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum Request {
+    Add { entity: Entity },
+    Get { id: String },
+    Update { entity: WithId<Entity> },
+    Delete { id: String },
+
+    SignUp { user: User },
+    SignIn { creds: Creds },
+}
+
+pub enum Response {
+    Add { id: String },
+    Get { entity: Entity },
+    GetAll { entities: Vec<WithId<Entity>> },
+    Empty,
+}
+
+
+macro_rules! api_entities {
+    ($($name:ident($db_table_name:literal$([$($path_to_ownership:literal)*])?) { $($field:ident: $type:ty),*$(,)* })*) => {
+
         #[derive(Debug, Deserialize, Serialize, Clone)]
-        pub enum RequestBody {
+        pub enum Entity {
             $($name($name)),*
+        }
+
+        pub static PATHS:phf::Map<&'static str, &'static [&'static str]> = phf::phf_map! {
+            $($db_table_name => &[$(concat!($($path_to_ownership,)?".user_id"),)*] as &[&str],)*
+        };
+
+        pub fn configure_endpoints(cfg: &mut ServiceConfig) {
+            cfg
+            $(
+            .route(concat!("/api/", $db_table_name, "/all"), web::get().to(
+                |user_id: UserId| async move {
+                    actix_surreal_starter::crud_ops::select_all::<$name>(user_id.0, $name::query_builder()).await.map(web::Json)
+                }
+            ))
+            .route(concat!("/api/", $db_table_name), web::get().to(
+                |id: Json<Id>, user_id: UserId| async move {
+                    actix_surreal_starter::crud_ops::select::<$name>(id.0.0, user_id.0, $name::query_builder()).await.map(web::Json)
+                }
+            ))
+            .route(concat!("/api/", $db_table_name), web::post().to(
+                |entity: Json<$name>, user_id: UserId| async move {
+                    actix_surreal_starter::crud_ops::insert(entity.0, user_id.0, $name::query_builder()).await
+                }
+            ))
+            .route(concat!("/api/", $db_table_name), web::put().to(
+                |entity: Json<WithId<serde_json::Value>>, user_id: UserId| async move {
+                    actix_surreal_starter::crud_ops::update(entity.0.id, entity.0.inner, user_id.0, $name::query_builder()).await
+                }
+            ))
+            .route(concat!("/api/", $db_table_name), web::delete().to(
+                |id: Json<Id>, user_id: UserId| async move {
+                    actix_surreal_starter::crud_ops::delete(id.0.0, user_id.0, $name::query_builder()).await
+                }
+            ))
+            )*;
         }
 
         $(
@@ -13,31 +102,28 @@ macro_rules! api_structs {
         pub struct $name {
             $(pub $field: $type),*
         }
+
+        impl ApiEntity for $name {
+            fn paths() -> &'static [&'static str] {
+                PATHS.get($db_table_name).unwrap()
+            }
+            fn table_name() -> &'static str {
+                $db_table_name
+            }
+            fn query_builder() -> QueryBuilder {
+                QueryBuilder {
+                    paths: Self::paths(),
+                    table_name: Self::table_name(),
+                    fkey_path_map: None, //TODO: nah oh it can't be None it's just a placeholder
+                }
+            }
+        }
         )*
     };
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub enum ApiActions {
-    Add,
-    #[default]
-    Get,
-    Update,
-    Delete,
-
-    SignUp,
-    SignIn,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Request {
-    pub action: ApiActions,
-    pub body: RequestBody,
-    pub metadata: Option<Metadata>,
-}
-
-api_structs!(
-    User {
+api_entities!(
+    User("users") {
         email: String,
         username: String,
         password: String,
@@ -45,24 +131,24 @@ api_structs!(
         selected_preference: Option<String>,
     }
 
-    Account {
+    Account("accounts") {
         title: String,
         user_id: String,
         currency_id: String,
         balance: i64,
     }
 
-    Creds {
+    Creds("creds") {
         email: String,
         password: String,
     }
 
-    Tag {
+    Tag("tags") {
         user_id: String,
         metadata_id: String,
     }
 
-    FinancialGoal {
+    FinancialGoal("financial_goals") {
         user_id: String,
         currency_id: String,
         start_date: DateTime<Utc>,
@@ -71,14 +157,14 @@ api_structs!(
         metadata_id: String,
     }
 
-    Transaction {
+    Transaction("transactions" ["account_id"]) {
         account_id: String,
         amount: i64,
         date: DateTime<Utc>,
         metadata_id: String,
     }
 
-    Transfer {
+    Transfer("transfers" ["account_id"]) {
         account_from: String,
         account_to: String,
         amount_from: i64,
@@ -88,7 +174,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    StableIncome {
+    StableIncome("stable_incomes") {
         user_id: String,
         currency_id: String,
         amount_per_month: i64,
@@ -98,7 +184,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    StableIncomeIncome {
+    StableIncomeIncome("stable_income_incomes") {
         stable_income_id: String,
         account_id: String,
         date: DateTime<Utc>,
@@ -106,7 +192,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    Loan {
+    Loan("loans") {
         user_id: String,
         currency_id: String,
         principal_amount: i64,
@@ -118,7 +204,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    LoanPayment {
+    LoanPayment("loan_payments") {
         loan_id: String,
         account_id: String,
         number: i32,
@@ -130,7 +216,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    Investment {
+    Investment("investments") {
         user_id: String,
         currency_id: String,
         r#type: String,
@@ -144,7 +230,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    InvestmentReturn {
+    InvestmentReturn("investment_returns") {
         investment_id: String,
         account_id: String,
         date: DateTime<Utc>,
@@ -152,7 +238,7 @@ api_structs!(
         metadata_id: String,
     }
 
-    Metadata {
+    Metadata("metadata") {
         title: Option<String>,
         description: Option<String>,
         category: Option<String>,
@@ -161,50 +247,50 @@ api_structs!(
         tag_groups: Vec<String>,
     }
 
-    Preference {
+    Preference("preferences") {
         user_id: String,
         default_currency_id: String,
         language: String,
     }
 
-    AutoDistribution {
+    AutoDistribution("auto_distributions") {
         ratio: f64,
         account_id: String,
         metadata_id: String,
         record_metadata_id: String,
     }
 
-    FinancialGoalAutoDistribution {
+    FinancialGoalAutoDistribution("financial_goal_auto_distributions") {
         financial_goal_id: String,
         auto_distribution_id: String,
     }
 
-    StableIncomeAutoDistribution {
+    StableIncomeAutoDistribution("stable_income_auto_distributions") {
         stable_income_id: String,
         auto_distribution_id: String,
     }
 
-    LoanAutoDistribution {
+    LoanAutoDistribution("loan_auto_distributions") {
         loan_id: String,
         auto_distribution_id: String,
     }
 
-    InvestmentAutoDistribution {
+    InvestmentAutoDistribution("investment_auto_distributions") {
         investment_id: String,
         auto_distribution_id: String,
     }
 
-    TransferAutoDistribution {
+    TransferAutoDistribution("transfer_auto_distributions") {
         metadata_id: String,
         account_to: String,
         auto_distribution_id: String,
     }
 
-    TransactionAutoDistribution {
+    TransactionAutoDistribution("transaction_auto_distributions") {
         auto_distribution_id: String,
     }
 
-    FinancialGoalInvestment {
+    FinancialGoalInvestment("financial_goal_investments") {
         financial_goal_id: String,
         date: DateTime<Utc>,
         amount: i64,

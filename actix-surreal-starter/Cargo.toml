@@ -20,3 +20,6 @@ log = "0.4.26"
 proc_macros = { path = "../proc_macros" }
 serde_json = "1.0.140"
 time = "0.3.41"
+futures = "0.3.31"
+once_cell = "1.21.3"
+phf = "0.11.3"

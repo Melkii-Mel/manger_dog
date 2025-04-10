@@ -4,14 +4,17 @@ use crate::session::{
     build_session_token_cookies, create_session, delete_session_from_db, delete_tokens,
     refresh_session,
 };
-use crate::{QueriesConfig, SessionConfig, DB};
+use crate::{NamesConfig, QueriesConfig, SessionConfig, DB};
 use actix_web::http::StatusCode;
-use actix_web::{web, HttpRequest, HttpResponse, HttpResponseBuilder};
+use actix_web::{web, FromRequest, HttpRequest, HttpResponse, HttpResponseBuilder};
 use bcrypt::{hash, verify, DEFAULT_COST};
+use futures::future::{ready, Ready};
 use proc_macros::error_type;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::Arc;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::method::Query;
@@ -70,15 +73,15 @@ pub async fn logout(
 }
 
 /// This function should only be called on valid data
-pub async fn register<TCreds, TQuery>(
+pub async fn register<TUserdata, TQuery>(
     queries_config: Arc<QueriesConfig>,
     session_config: Arc<SessionConfig>,
-    register_config: Arc<RegisterConfig<TQuery, TCreds>>,
-    creds: web::Json<TCreds>,
+    register_config: Arc<RegisterConfig<TQuery, TUserdata>>,
+    creds: web::Json<TUserdata>,
 ) -> AuthResponse
 where
     TQuery: IntoQuery + Clone + Send + Sync,
-    TCreds: LoginData + Send + Sync,
+    TUserdata: LoginData + Send + Sync,
 {
     let query = DB.query(register_config.query.clone());
     let mut creds = creds.into_inner();
@@ -88,9 +91,8 @@ where
     let query_with_bound_data = (register_config.bind_query_data)(query, creds);
     let id = query_with_bound_data
         .await?
-        .take::<Option<(String,)>>(0)?
-        .unwrap()
-        .0;
+        .take::<Option<String>>("id")?
+        .unwrap();
     Ok(respond_with_session_tokens(&queries_config, id, &session_config).await)
 }
 
@@ -119,32 +121,36 @@ pub async fn refresh(
     Ok(response)
 }
 
-#[derive(Deserialize)]
-pub struct Id {
-    id: String,
-}
-
-pub async fn get_user<TUserdata: DeserializeOwned + Serialize>(
+pub async fn get_userdata<TUserdata: DeserializeOwned + Serialize>(
     http_request: HttpRequest,
     session_config: Arc<SessionConfig>,
     queries_config: Arc<QueriesConfig>,
 ) -> AuthResponseWithBody {
-    let id: Option<Id> = DB
-        .query(queries_config.get_user_id_by_access_token)
-        .bind((
-            "access_token",
-            get_access_token(&http_request, &session_config)?,
-        ))
-        .await?
-        .take(0)?;
-    let id = id.ok_or(EndpointError::new(DbError))?.id;
     Ok(HttpResponse::Ok().content_type("application/json").json(
         DB.query(queries_config.get_userdata_by_id)
-            .bind(("id", id))
+            .bind((
+                "id",
+                get_user_id(
+                    get_access_token(&http_request, &session_config)?,
+                    &queries_config,
+                )
+                .await?,
+            ))
             .await?
             .take::<Option<TUserdata>>(0)?
             .ok_or(EndpointError::new(DbError))?,
     ))
+}
+
+async fn get_user_id(
+    access_token: String,
+    queries_config: &QueriesConfig,
+) -> Result<String, EndpointError<AuthError>> {
+    DB.query(queries_config.get_user_id_by_access_token)
+        .bind(("access_token", access_token))
+        .await?
+        .take::<Option<String>>("id")?
+        .ok_or(EndpointError::new(DbError))
 }
 
 //TODO: path prefix is not necessary, should do something about this warning in the macro
@@ -249,4 +255,20 @@ fn get_access_token(
         .ok_or(EndpointError::new(AuthError::KeyExpired))?
         .value()
         .to_string())
+}
+
+pub struct UserId(pub String);
+
+impl FromRequest for UserId {
+    type Error = EndpointError<AuthError>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self, EndpointError<AuthError>>>>>;
+
+    fn from_request(http_request: &HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
+        let access_token = get_access_token(http_request, &NamesConfig::instance().session_config);
+        Box::pin(async move {
+            get_user_id(access_token?, &QueriesConfig::instance())
+                .await
+                .map(|s| UserId(s))
+        })
+    }
 }
