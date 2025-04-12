@@ -9,6 +9,8 @@ mod helper_implementations;
 mod server_address;
 pub mod crud_ops;
 pub mod query_builder;
+pub mod api;
+pub mod pre_built;
 
 pub use crate::authentication::{LoginData, RegisterConfig, UserId};
 pub use crate::endpoint_error::EndpointError;
@@ -22,7 +24,7 @@ use actix_files::Files;
 use actix_web::web::{Json, ServiceConfig};
 use actix_web::{web, App, HttpRequest, HttpServer};
 use serde::de::DeserializeOwned;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::io;
 use std::io::ErrorKind;
 use std::sync::{Arc, LazyLock};
