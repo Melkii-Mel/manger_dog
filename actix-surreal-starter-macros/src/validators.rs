@@ -6,7 +6,7 @@ use crate::validators::ValidationError::UsernameEmpty;
 macro_rules! impl_validators {
     {
         (
-            struct_name: $validation_struct_name:ident,
+            trait_name: $vis:vis $validation_struct_name:ident,
             parameter_name: $value_name:ident,
             error: $validation_error_type:ident $(,)?
         )
@@ -18,9 +18,9 @@ macro_rules! impl_validators {
             )*
         }
     } => {
-        impl $validation_struct_name {
+         $vis trait $validation_struct_name {
             $(
-            pub fn $fn_name$(<$( $type_ident$(: $( $generic_type + )+ std::any::Any ,)* )?>)?($value_name:impl_validators!(@parse_param $($value_type)*)) -> Result<(), $validation_error_type> {
+            fn $fn_name$(<$( $type_ident$(: $( $generic_type + )+ std::any::Any ,)* )?>)?($value_name:impl_validators!(@parse_param $($value_type)*)) -> Result<(), $validation_error_type> {
                 $(
                 impl_validators!(@parse_logic $logic $(, @error $result $( $result_expr )* => $validation_error_type)?);
                 )*
@@ -45,6 +45,17 @@ macro_rules! impl_validators {
     };
 }
 
+#[macro_export]
+macro_rules! impl_display_for_error {
+    ($error:ident) => {
+        impl ::std::fmt::Display for $error {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+                write!(f, "{:?}", self)
+            }
+        }
+    };
+}
+
 // Example usage
 
 enum ValidationError {
@@ -55,10 +66,8 @@ enum ValidationError {
     Date1NotLessThanDate2,
 }
 
-struct Validator;
-
 impl_validators! {
-    (struct_name: Validator, parameter_name: v, error: ValidationError) {
+    (trait_name: Validator, parameter_name: v, error: ValidationError) {
         not_empty(&String) {
             v.len() == 0 => StringEmpty
         }

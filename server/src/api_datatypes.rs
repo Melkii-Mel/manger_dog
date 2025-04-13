@@ -1,14 +1,21 @@
 use chrono::{DateTime, Utc};
-use actix_surreal_starter_macros::api_entities;
+use thiserror::Error;
+use actix_surreal_starter_macros::{api_entities, impl_display_for_error};
 use actix_surreal_starter::pre_built::validators::*;
 
+#[derive(Debug, Error)]
 pub enum ApiValidationError {
-    DefaultError(ValidationError)
+    DefaultError(#[from] ValidationError),
 }
+
+struct Validator;
+impl DefaultValidations for Validator{}
+
+impl_display_for_error!(ApiValidationError);
 
 api_entities!(
     validator: Validator,
-    error: ValidationError,
+    error: ApiValidationError,
     // TODO: remove unnecessary fields from the user api, leaving them only for authorization and registration
     User("users") {
         email: String [email_format],
@@ -87,7 +94,7 @@ api_entities!(
         user_id: String,
         currency_id: String,
         amount_per_month: i64 [ne_zero],
-        start_date: DateTime<Utc> [optional_v2_lt_v1(end_date)],
+        start_date: DateTime<Utc> [optional_v2_gt_v1(end_date)],
         end_date: Option<DateTime<Utc>>,
         last_update_date: DateTime<Utc>,
         metadata_id: String,
@@ -103,7 +110,7 @@ api_entities!(
         currency_id: String,
         principal_amount: i64 [gt_zero],
         interest_rate: f64 [gt_zero],
-        start_date: DateTime<Utc> [optional_v2_lt_v1(end_date)],
+        start_date: DateTime<Utc> [optional_v2_gt_v1(end_date)],
         end_date: Option<DateTime<Utc>>,
         interest_rate_type: String,
         compounding_frequency: String,
@@ -121,7 +128,7 @@ api_entities!(
         r#type: String,
         compounding_frequency: String,
         principal_amount: i64 [gt_zero],
-        start_date: DateTime<Utc> [optional_v2_lt_v1(expected_end_date), optional_v2_lt_v1(end_date)],
+        start_date: DateTime<Utc> [optional_v2_gt_v1(expected_end_date), optional_v2_gt_v1(end_date)],
         expected_end_date: Option<DateTime<Utc>> ,
         end_date: Option<DateTime<Utc>>,
         risk_level: String,

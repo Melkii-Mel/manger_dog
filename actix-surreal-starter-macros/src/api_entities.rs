@@ -7,7 +7,7 @@ macro_rules! api_entities {
             $name:ident( $db_table_name:literal $( [ $( $path_to_ownership:literal ),* ] )? )
             {
                 $(
-                    $field:ident: $type:ty $( [ $( $( $validator_type_override:ident::)? $validator:ident $( ( $( $validation_field:ident ),*$(,)? ) )? ),* $(,)? ] )?
+                    $field:ident: $type:ty $( [ $( $validator:ident $( ( $( $validation_field:ident ),*$(,)? ) )? ),* $(,)? ] )?
                 ),*$(,)*
             }
         )*
@@ -71,19 +71,13 @@ macro_rules! api_entities {
             fn validate(&self) -> Vec<$validation_error_type> {
                 let mut result: Vec<$validation_error_type> = Vec::new();
                 $($($(
-                if let Err(e) = api_entities!(@parse_validator_type $validator_type $(=> $validator_type_override )?)::$validator((&self.$field $($(, &self.$validation_field)* )?)) {
-                    result.push(e);
+                if let Err(e) = $validator_type::$validator((&self.$field $($(, &self.$validation_field)* )?)) {
+                    result.push(e.into());
                 }
                 )*)?)*
                 result
             }
         }
         )*
-    };
-    (@parse_validator_type $validator_type:ident => $validator_type_override:ident) => {
-        $validator_type_override
-    };
-    (@parse_validator_type $validator_type:ident) => {
-        $validator_type
     };
 }
