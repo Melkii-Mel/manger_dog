@@ -22,7 +22,7 @@ where
 
 impl<T: Debug + Serialize + GetStatusCode> Display for EndpointError<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "An internal error occurred: {:?}", self.error_type)
+        write!(f, "Error: {:?}", self.error_type)
     }
 }
 

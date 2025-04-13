@@ -2,8 +2,8 @@ mod api_datatypes;
 
 use crate::api_datatypes::{configure_endpoints, Creds, User};
 use actix_surreal_starter::{
-    build_register_config, serve_app, ActixSurrealStarter, LoginData, NamesConfig, RegisterConfig,
-    ServerStarter,
+    build_register_config, ActixSurrealStarter, LoginData, NamesConfig,
+    RegisterConfig, ServerStarter,
 };
 use actix_web::web::Json;
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
@@ -42,8 +42,7 @@ async fn main() -> std::io::Result<()> {
                             format!("Hello enclosed world, you sent me a request to the following path {:?}", http_request.path())
                         }
                     }),
-                )
-                .service(serve_app("/a/", "../web_client/dist"));
+                );
             configure_endpoints(cfg);
             cfg
         },

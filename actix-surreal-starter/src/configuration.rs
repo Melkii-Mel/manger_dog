@@ -120,6 +120,7 @@ env_names!({
     db_password: "DB_PASSWORD",
     db_namespace: "DB_NAMESPACE",
     db_name: "DB_NAME",
+    static_files_serving_config: "STATIC_FILES_SERVING_CONFIG",
 });
 
 #[derive(Clone)]

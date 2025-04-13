@@ -1,0 +1,22 @@
+[
+  {
+    "mount_path": "/static/",
+    "dir": "../web_client/static/",
+    "use_index": false
+  },
+  {
+    "mount_path": "/landing/",
+    "dir": "../web_client/landing/",
+    "use_index": true
+  },
+  {
+    "mount_path": "/auth/",
+    "dir": "../web_client/auth/",
+    "use_index": true
+  },
+  {
+    "mount_path": "/app/",
+    "dir": "../web_client/dist/",
+    "use_index": true
+  }
+]
