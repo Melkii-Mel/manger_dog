@@ -23,6 +23,7 @@ pub enum ValidationError {
     PasswordTooShort,
     PasswordTooLong,
     PasswordMustNotContainSpaces,
+    PasswordContainsInvalidCharacters,
     PasswordMustContainUppercase,
     PasswordMustContainLowercase,
     PasswordMustContainDigit,
@@ -99,6 +100,7 @@ impl_validators! {
         password_basic(&String) {
             Self::password_length((v, 6, 64))
             regexes::SPACES.is_match(v) => PasswordMustNotContainSpaces
+            !regexes::VALID_PASSWORD_CHARS.is_match(v) => PasswordContainsInvalidCharacters
             !regexes::DIGIT.is_match(v) => PasswordMustContainDigit
         }
         password_moderate(&String) {

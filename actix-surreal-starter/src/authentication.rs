@@ -8,7 +8,6 @@ use crate::{NamesConfig, QueriesConfig, SessionConfig, DB};
 use actix_web::http::StatusCode;
 use actix_web::{web, FromRequest, HttpRequest, HttpResponse, HttpResponseBuilder};
 use bcrypt::{hash, verify, DEFAULT_COST};
-use futures::future::{ready, Ready};
 use proc_macros::error_type;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};

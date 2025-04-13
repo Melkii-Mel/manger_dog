@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
-use crate::query_builder::QueryBuilder;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct WithId<T> {

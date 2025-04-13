@@ -8,8 +8,9 @@ pub enum ApiValidationError {
     DefaultError(#[from] ValidationError),
 }
 
+#[allow(dead_code)]
 struct Validator;
-impl DefaultValidations for Validator{}
+impl DefaultValidations for Validator {}
 
 impl_display_for_error!(ApiValidationError);
 

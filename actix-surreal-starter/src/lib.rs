@@ -24,7 +24,7 @@ use actix_files::Files;
 use actix_web::web::{Json, ServiceConfig};
 use actix_web::{web, App, HttpRequest, HttpServer};
 use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::io;
 use std::io::ErrorKind;
 use std::sync::{Arc, LazyLock};
