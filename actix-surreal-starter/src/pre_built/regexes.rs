@@ -1,5 +1,5 @@
-use std::sync::LazyLock;
 use regex::Regex;
+use std::sync::LazyLock;
 
 macro_rules! regexes {
     {$($name:ident => $value:literal)*} => {
@@ -9,13 +9,12 @@ macro_rules! regexes {
     };
 }
 
-regexes!{
+regexes! {
     EMAIL => r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     SPACES => r"\s"
-    VALID_PASSWORD_CHARS => r"^[a-zA-Z0-9@#!$%^&*()_+\-=<>?{}[\]|~]+$"
+    VALID_PASSWORD_CHARS => r"^[a-zA-Z0-9@#!$%^&*()_+\-=<>?{}\[\]\|~]+$"
     UPPERCASE => r"[A-Z]"
     LOWERCASE => r"[a-z]"
     DIGIT => r"\d"
-    SPECIAL_PASSWORD_CHAR => r"[^\w\s:]"
+    SPECIAL_PASSWORD_CHAR => r"[^\w\s\:]"
 }
-

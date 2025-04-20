@@ -1,0 +1,136 @@
+{# <!--suppress HtmlUnknownTarget, GrazieInspection, HtmlUnknownAttribute, JSUnresolvedReference, BadExpressionStatementJS, HtmlWrongAttributeValue --> #}
+
+{% macro theme_button() %}
+
+<button class="theme-toggle" title="{{ trans(key='theme_toggle_button', lang=lang) }}">
+    <svg class="theme-toggle-svg-dark" fill="currentColor" height="18" viewBox="0 0 18 18" width="18"
+         xmlns="http://www.w3.org/2000/svg">
+        <path d="M9 18C6.5 18 4.375 17.125 2.625 15.375C0.875 13.625 0 11.5 0 9C0 6.5 0.875 4.375 2.625 2.625C4.375 0.875 6.5 0 9 0C9.23333 0 9.4625 0.00833333 9.6875 0.025C9.9125 0.0416667 10.1333 0.0666667 10.35 0.1C9.66667 0.583333 9.12083 1.2125 8.7125 1.9875C8.30417 2.7625 8.1 3.6 8.1 4.5C8.1 6 8.625 7.275 9.675 8.325C10.725 9.375 12 9.9 13.5 9.9C14.4167 9.9 15.2583 9.69583 16.025 9.2875C16.7917 8.87917 17.4167 8.33333 17.9 7.65C17.9333 7.86667 17.9583 8.0875 17.975 8.3125C17.9917 8.5375 18 8.76667 18 9C18 11.5 17.125 13.625 15.375 15.375C13.625 17.125 11.5 18 9 18ZM9 16C10.4667 16 11.7833 15.5958 12.95 14.7875C14.1167 13.9792 14.9667 12.925 15.5 11.625C15.1667 11.7083 14.8333 11.775 14.5 11.825C14.1667 11.875 13.8333 11.9 13.5 11.9C11.45 11.9 9.70417 11.1792 8.2625 9.7375C6.82083 8.29583 6.1 6.55 6.1 4.5C6.1 4.16667 6.125 3.83333 6.175 3.5C6.225 3.16667 6.29167 2.83333 6.375 2.5C5.075 3.03333 4.02083 3.88333 3.2125 5.05C2.40417 6.21667 2 7.53333 2 9C2 10.9333 2.68333 12.5833 4.05 13.95C5.41667 15.3167 7.06667 16 9 16Z"
+        />
+    </svg>
+    <svg class="theme-toggle-svg-light" fill="currentColor" height="24" viewBox="0 0 24 24" width="24"
+         xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15C12.8333 15 13.5417 14.7083 14.125 14.125C14.7083 13.5417 15 12.8333 15 12C15 11.1667 14.7083 10.4583 14.125 9.875C13.5417 9.29167 12.8333 9 12 9C11.1667 9 10.4583 9.29167 9.875 9.875C9.29167 10.4583 9 11.1667 9 12C9 12.8333 9.29167 13.5417 9.875 14.125C10.4583 14.7083 11.1667 15 12 15ZM12 17C10.6167 17 9.4375 16.5125 8.4625 15.5375C7.4875 14.5625 7 13.3833 7 12C7 10.6167 7.4875 9.4375 8.4625 8.4625C9.4375 7.4875 10.6167 7 12 7C13.3833 7 14.5625 7.4875 15.5375 8.4625C16.5125 9.4375 17 10.6167 17 12C17 13.3833 16.5125 14.5625 15.5375 15.5375C14.5625 16.5125 13.3833 17 12 17ZM5 13H1V11H5V13ZM23 13H19V11H23V13ZM11 5V1H13V5H11ZM11 23V19H13V23H11ZM6.4 7.75L3.875 5.325L5.3 3.85L7.7 6.35L6.4 7.75ZM18.7 20.15L16.275 17.625L17.6 16.25L20.125 18.675L18.7 20.15ZM16.25 6.4L18.675 3.875L20.15 5.3L17.65 7.7L16.25 6.4ZM3.85 18.7L6.375 16.275L7.75 17.6L5.325 20.125L3.85 18.7Z"
+        />
+    </svg>
+    <script async= src="/static/js/theme.js"></script>
+</button>
+{% endmacro %}
+
+{% macro language_select() %}
+<label class="language-label">
+    <svg class="language-icon" fill="currentColor" height="16" width="16">
+        <path clip-rule="evenodd" d="M8.516 3a.94.94 0 0 0-.941.94v1.15H2.94a.94.94 0 1 0 0 1.882h7.362a7.422 7.422 0 0 1-1.787 3.958 7.42 7.42 0 0 1-1.422-2.425.94.94 0 1 0-1.774.627 9.303 9.303 0 0 0 1.785 3.043 7.422 7.422 0 0 1-4.164 1.278.94.94 0 1 0 0 1.881 9.303 9.303 0 0 0 5.575-1.855 9.303 9.303 0 0 0 4.11 1.74l-.763 1.525a.968.968 0 0 0-.016.034l-1.385 2.77a.94.94 0 1 0 1.683.841l1.133-2.267h5.806l1.134 2.267a.94.94 0 0 0 1.683-.841l-1.385-2.769a.95.95 0 0 0-.018-.036l-3.476-6.951a.94.94 0 0 0-1.682 0l-1.82 3.639a7.423 7.423 0 0 1-3.593-1.256 9.303 9.303 0 0 0 2.27-5.203h1.894a.94.94 0 0 0 0-1.881H9.456V3.94A.94.94 0 0 0 8.516 3Zm6.426 11.794a1.068 1.068 0 0 1-.02.039l-.703 1.407h3.924l-1.962-3.924-1.24 2.478Z"
+              fill-rule="evenodd"
+              viewBox="0 0 24 24"></path>
+    </svg>
+    <select class="language-select" name="language-select">
+        {% for language in config.extra.languages %}
+        <option %} %}selected{% endif if lang language.code== value="{{ language.code }}" {%>
+            {{ language.name }}
+        </option>
+        {% endfor %}
+        <script>
+            {
+                const languages = JSON.parse('{{config.extra.languages | json_encode | safe}}').map(l => l.code);
+                const select = document.currentScript.closest(".language-select");
+                window.addEventListener("pageshow", () => {
+                    select.value = "{{lang}}";
+                });
+                select.addEventListener("change", function () {
+                    const selectedLang = select.value;
+                    const defaultLanguage = "{{ config.default_language }}";
+                    const pathParts = window.location.pathname.split("/");
+                    if (selectedLang === defaultLanguage) {
+                        pathParts.splice(1, 1);
+                        if (pathParts.length === 1) {
+                            pathParts.push("");
+                        }
+                    } else {
+                        if (languages.includes(pathParts[1])) {
+                            pathParts[1] = selectedLang;
+                        } else {
+                            pathParts.splice(0, 1, selectedLang);
+                        }
+                    }
+                    window.location.href = pathParts.join("/");
+                });
+            }
+        </script>
+    </select>
+</label>
+{% endmacro %}
+
+{% macro sign_in() %}
+<a class="btn sign-in-button" href="/{{lang}}/auth?mode=sign_in">
+    {{ trans(key='sign_in', lang=lang) }}
+</a>
+{% endmacro %}
+
+{% macro sign_up() %}
+<a class="btn sign-up-button" href="/{{lang}}/auth?mode=sign_up">
+    {{ trans(key='sign_up', lang=lang) }}
+</a>
+{% endmacro %}
+
+{% macro github_button(href) %}
+<a href="{{href}}">
+    <button class="github-button">
+        <svg class="github-svg" fill="currentColor">
+            <path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"></path>
+        </svg>
+    </button>
+</a>
+{% endmacro %}
+
+{% macro burger(content) %}
+<div class="burger-items" style="display: none">
+    <button class="burger-button">
+        <svg fill="currentColor" height="16" viewBox="0 0 24 24"
+             width="16">
+            <path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"></path>
+        </svg>
+    </button>
+    <div class="burger-menu">
+        <button class="burger-menu-close-button">X</button>
+        {% for item in content %}
+        {{ item | safe }}
+        {% endfor %}
+    </div>
+    <script>
+        {
+            const burger_items = document.currentScript.closest(".burger-items")
+            document.addEventListener("DOMContentLoaded", () => {
+                const burger_button = burger_items.querySelector(".burger-button");
+                const burger_menu = burger_items.querySelector(".burger-menu");
+                const burger_menu_close_button = burger_items.querySelector(".burger-menu-close-button");
+                document.body.appendChild(burger_menu);
+                burger_items.parentElement.appendChild(burger_button);
+                burger_button.addEventListener("click", () => {
+                    burger_menu.classList.toggle("burger-menu-open");
+                })
+                burger_menu_close_button.addEventListener("click", () => {
+                    burger_menu.classList.remove("burger-menu-open");
+                })
+            })
+        }
+    </script>
+</div>
+{% endmacro %}
+
+{% macro form_input(name, title='', type='text', autocomplete="off") %}
+<div class="form-input-field">
+    <label class="form-input-label">
+        <span class="form-input-title">{{ title }}</span>
+        <input autocomplete="{{autocomplete}}" class="form-input-input" name="{{name}}" type="{{type}}">
+        <script src="/static/js/input_field_visuals.js"></script>
+    </label>
+    <span class="form-input-error"></span>
+</div>
+{% endmacro %}
+
+{%- macro lang() -%}
+{%- if lang != config.default_language -%}
+/{{lang | safe}}
+{%- endif -%}
+{%- endmacro -%}

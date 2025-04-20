@@ -34,7 +34,7 @@ impl<T: Debug + Serialize + GetStatusCode> ResponseError for EndpointError<T> {
     fn error_response(&self) -> HttpResponse<BoxBody> {
         HttpResponse::build(self.status_code())
             .insert_header(ContentType::html())
-            .body(self.to_string())
+            .json(self)
     }
 }
 

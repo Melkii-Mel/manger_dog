@@ -1,0 +1,17 @@
+{% import "common/macros.html" as common_macros %}
+{% import "macros.html" as special_macros %}
+{% extends "bases/static_main.html" %}
+
+{% block main %}
+<div class="hero">
+    <div class="hero-left">
+        <h1>{{ trans(key='manger_dog', lang=lang) }}</h1>
+        <p>{{ trans(key='hero_text', lang=lang) }}</p>
+        <a class="btn cta-button" href="/{{lang}}/auth">{{trans(key='sign_up', lang=lang)}}</a>
+    </div>
+    <div class="hero-right">
+        {{ special_macros::manger_dog_icon(class="hero-image") }}
+    </div>
+</div>
+
+{% endblock main %}

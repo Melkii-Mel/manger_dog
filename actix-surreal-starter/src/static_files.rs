@@ -1,12 +1,13 @@
-use crate::static_files::StaticFilesSetupError::DirNotFound;
+use crate::static_files::StaticFilesSetupError::EntityNotFound;
 use crate::{EnvNamesConfig, EnvValues};
 use actix_files::Files;
 use actix_web::web::ServiceConfig;
+use colored::Colorize;
 use log::error;
 use serde::Deserialize;
-use std::path::Path;
+use std::io;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use colored::Colorize;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -15,15 +16,15 @@ pub enum StaticFilesSetupError {
     )]
     EnvNotSet(&'static str, String),
     #[error("Error: Failed to read config file: {0}")]
-    IOError(#[from] std::io::Error),
+    IOError(#[from] io::Error),
     #[error("Error: Failed to parse config: {0}")]
     ConfigFileParsingConfig(#[from] serde_json::Error),
-    #[error("Warning: directory not found: {0}. Mount path was not added.")]
-    DirNotFound(String),
+    #[error("Warning: entity not found: {0}. Mount path was not added.")]
+    EntityNotFound(String),
     #[error("Error: index.html not found in a directory for the mount path that requires index.html: {0}.")]
     IndexNotFound(String),
-    #[error("Error: path contains invalid characters: {0}")]
-    BadPath(String),
+    #[error("Error canonizing relative path {0}: {1}")]
+    CanonizationError(String, io::Error),
 }
 
 #[derive(Debug, Deserialize)]
@@ -58,11 +59,19 @@ impl StaticFilesSetupHandler {
             .map_err(|e| StaticFilesSetupError::ConfigFileParsingConfig(e))?;
         let mut errors: Vec<StaticFilesSetupError> = Vec::new();
         fn get_path_not_found_error(path: &Path) -> StaticFilesSetupError {
-            let path = path.to_str().ok_or(StaticFilesSetupError::BadPath(
-                path.to_string_lossy().to_string(),
-            ));
+            let path = path.canonicalize().map_err(|e| {
+                StaticFilesSetupError::CanonizationError(path.to_string_lossy().to_string(), e)
+            });
             match path {
-                Ok(path) => DirNotFound(path.to_string()),
+                Ok(path) => {
+                    let path_str = path.display().to_string();
+                    EntityNotFound(
+                        path_str
+                            .strip_prefix(r"\\?\")
+                            .unwrap_or(&path_str)
+                            .to_string(),
+                    )
+                }
                 Err(e) => e,
             }
         }
@@ -75,7 +84,7 @@ impl StaticFilesSetupHandler {
                     return None;
                 }
                 let path = path.join("index.html");
-                if e.use_index && path.exists() {
+                if e.use_index && !path.exists() {
                     errors.push(get_path_not_found_error(&path));
                     return None;
                 }
@@ -90,7 +99,9 @@ impl StaticFilesSetupHandler {
     }
 
     pub fn output_errors(&self) {
-        self.static_file_errors.iter().for_each(|e| println!("{}", e.to_string().yellow()));
+        self.static_file_errors
+            .iter()
+            .for_each(|e| println!("{}", e.to_string().yellow()));
     }
 
     pub fn config(&self, cfg: &mut ServiceConfig) {

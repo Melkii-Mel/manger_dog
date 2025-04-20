@@ -1,0 +1,394 @@
+//*
+//  /* Debug */
+//  outline: 1px solid rgba(255, 0, 0, 0.2)
+
+:root
+  --text-color-light: #000000
+  --text-color-dark: #F4F4F9
+  --gap-1: 1rem
+  --small-screen: false
+  @media screen and (max-width: 768px)
+    --gap-1: 0.5rem
+    --small-screen: true
+
+html
+  font-size: clamp(10%, 2vw, 62.5%)
+  overflow-x: hidden
+
+body
+  font-family: sans-serif
+  --primary-color: #B8DBD9
+  --text-color: var(--text-color-dark)
+  --text-color-inverse: var(--text-color-light)
+  --border-color: #182328
+  --bg-color: #000000
+  --secondary-color: #2F4550
+  --cta-color: #B08B78
+  --error-color: #dc2626
+  --theme-icon: url("/static/images/dark_mode.svg")
+  font-size: 1.6rem
+
+body[data-theme="light"]
+  --primary-color: #586F7C
+  --text-color: var(--text-color-light)
+  --text-color-inverse: var(--text-color-dark)
+  --border-color: #88A5AB
+  --bg-color: #F4F4F9
+  --secondary-color: #B8DBD9
+  --cta-color: #51292B
+  --theme-icon: url("/static/images/light_mode.svg")
+
+@mixin flex-row
+  display: flex
+  flex-direction: row
+
+@mixin icon-button
+  width: 24px
+  height: 24px
+  border-radius: 24px
+  padding: 0
+  border-width: 0
+  background-color: transparent
+  background-repeat: no-repeat
+  background-size: contain
+  background-position: center
+
+@mixin for-small-screen
+  @media screen and (max-width: 768px)
+    @content
+
+@mixin invisible
+  background: none
+  border: none
+
+body
+  display: flex
+  flex-direction: column
+  height: 100vh
+  margin: 0
+
+  *
+    color: var(--text-color)
+    background: var(--bg-color)
+    transition: all 0.2s ease-out
+
+  > *
+    padding: 8px
+
+header, footer
+  min-height: 60px
+  padding: 10px
+
+header
+  backdrop-filter: blur(16px)
+
+header, .header-center, .header-left, .header-right
+  align-items: center
+  @include flex-row
+
+.header-center, .header-left, .header-right
+  height: 2rem
+  gap: var(--gap-1)
+
+.header-right
+  @include for-small-screen
+    display: none
+
+main
+  flex: 1
+  display: flex
+  align-content: stretch
+  align-items: center
+  flex-direction: column
+
+button
+  cursor: pointer
+
+a
+  text-decoration: none
+  font-size: 1.6rem
+
+h1
+  font-size: clamp(2rem, 5vw, 7rem)
+
+p
+  font-size: 1.6rem
+
+.theme-toggle
+  @include icon-button
+  transition: transform 0.3s ease-out
+
+  &:hover
+    transform: translateY(0.2rem) scale(1.1)
+
+  [data-theme="light"] &:hover
+    transform: rotate(180deg)
+
+  [data-theme="dark"] &:hover
+    transform: rotate(30deg)
+
+
+.separator, .separator-horizontal
+  display: flex
+  opacity: 0.5
+  background-color: var(--text-color)
+  border-radius: 10px
+  transform: translateZ(0)
+
+.separator
+  width: 0.5px
+  height: 100%
+  margin: 0 10px
+
+.separator-horizontal
+  height: 0.5px
+  width: 100%
+  margin: 10px 0
+
+.header-center
+  flex: 1
+
+.github-svg, .github-button
+  @include icon-button
+
+.github-svg
+  pointer-events: none
+  color: var(--text-color)
+
+button, .btn, select
+  border: solid 1px var(--border-color)
+  color: var(--text-color)
+  border-radius: 5px
+  padding: 10px
+  background: var(--secondary-color)
+  transition: color, border, background-color ease-out 0.2s
+  align-content: center
+
+  &:hover:not(:disabled)
+    transform: translateY(0.1rem)
+    opacity: 0.75
+
+  &:disabled
+    opacity: 0.5
+
+.cta-button
+  background-color: var(--cta-color)
+  color: var(--text-color-inverse)
+
+.github-button
+  :hover
+    opacity: 0.8
+
+.sign-up-button
+  @include for-small-screen
+    display: none
+
+.burger-menu .sign-up-button
+  @include for-small-screen
+    display: unset
+
+.sign-in-button
+  background: none
+  border-color: var(--text-color)
+  color: var(--text-color)
+  transition: opacity 0.2s ease-out
+
+  &:hover
+    opacity: 0.5
+    background: none
+
+
+svg
+  color: var(--primary-color)
+  background: none
+
+body[data-theme="dark"]
+  .theme-toggle-svg-dark
+    display: inline
+
+  .theme-toggle-svg-light
+    display: none
+
+body[data-theme="light"]
+  .theme-toggle-svg-dark
+    display: none
+
+  .theme-toggle-svg-light
+    display: inline
+
+.language-label
+  padding: 0 0 0 5px
+  background: var(--secondary-color)
+  border-radius: 5px
+
+.language-select
+  border: transparent
+
+.burger-button
+  padding: 0
+  display: none
+  width: 32px
+  height: 32px
+  @include for-small-screen
+    display: unset
+
+.burger-menu-close-button
+  width: 32px
+  height: 32px
+  padding: 0
+
+.burger-menu
+  background: var(--secondary-color)
+  position: fixed
+  top: 0
+  bottom: 0
+  left: 25%
+  right: 0
+  display: flex
+  flex-direction: column
+  transform: translateX(100%)
+  align-items: end
+  padding: 24px 10px
+  gap: 10px
+  border: 5px solid var(--border-color)
+  border-right: 0
+  border-radius: 10px 0 0 10px
+  visibility: collapse
+  overflow-y: auto
+  $transform-transition: transform 0.2s ease-out
+  transition: $transform-transition, visibility 0s linear 0.5s
+
+  &.burger-menu-open
+    visibility: visible
+    transform: translateX(0)
+    transition: $transform-transition, visibility
+
+.hero
+  $padding: 100px
+  justify-self: center
+  margin: 100px 0
+  padding: 0 $padding
+  display: flex
+  flex-direction: row
+  max-width: 1080px
+  width: calc(100% - $padding * 2)
+  justify-content: center
+  @include for-small-screen
+    flex-direction: column-reverse
+
+.hero-left, .hero-right
+  display: flex
+  flex-direction: column
+  justify-content: center
+
+.hero-left
+  align-items: start
+  flex: 2
+  text-align: center
+
+.hero-right
+  width: 100%
+  align-items: end
+  display: flex
+  flex: 1
+
+.hero-right, .hero-left
+  @include for-small-screen
+    align-items: center
+
+.hero-image
+  width: 100%
+  max-width: 400px
+
+.auth-block
+  width: 100%
+  margin-top: auto
+  margin-bottom: auto
+  align-self: center
+  justify-self: center
+  border: solid 2px var(--border-color)
+  border-radius: 10px
+  padding: 2rem
+  max-width: 480px
+  transition: max-width 0.1s ease-out
+  @include for-small-screen
+    max-width: 100vw
+    width: unset
+    align-self: unset
+
+.auth-form
+  display: flex
+  flex-direction: column
+  gap: 2rem
+  padding: 1rem
+
+.form-input-field
+  display: flex
+  flex-direction: column
+  gap: 0.5rem
+
+.form-input-label
+  display: flex
+  flex-direction: column
+  justify-content: flex-end
+  border-radius: 10px
+  padding: 0.5rem
+  height: 4rem
+  border: solid var(--border-color)
+  position: relative
+
+  &:focus-within
+    border-color: var(--primary-color)
+
+  &:has([data-erroneous="true"])
+    border-color: var(--error-color)
+
+.form-input-title
+  padding: 2px
+  font-size: 1.6rem
+  background: none
+  position: absolute
+  top: 50%
+  transform: translateY(-50%)
+
+  .form-input-label:focus-within &,
+  .form-input-label[data-empty="false"] &
+    font-size: 1.4rem
+    top: 0
+    transform: translateY(0)
+
+.form-input-error
+  min-height: 1.5rem
+  font-size: 1.25rem
+  padding-left: 1.25rem
+  color: var(--error-color)
+
+
+.form-input-input
+  font-size: 1.6rem
+  padding: 2px
+  border: none
+  background: none
+  outline: none
+
+[type="submit"]
+  &[disabled]
+    cursor: unset
+
+// Cryptic things
+input
+  &:-webkit-autofill
+    background-color: transparent !important
+    -webkit-box-shadow: 0 0 0 1000px transparent inset !important
+
+  &:-webkit-autofill:focus
+    background-color: transparent !important
+
+.auth-form h1
+  font-size: 3rem
+
+.auth-form a
+  color: var(--secondary-color)
+
+.gone
+  display: none

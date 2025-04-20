@@ -1,0 +1,61 @@
+# The URL the site will be built for
+base_url = "https://example.com"
+
+output_dir = "../web/generated/"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = false
+
+default_language = "ru"
+
+[markdown]
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
+
+[translations]
+[languages.ru]
+[languages.ru.translations]
+title = "Собака На Сене"
+auth = "Вход"
+theme_toggle_button = "Переключение между тёмной и светлой темами"
+manger_dog_icon = "Иконка \"Собака на сене\""
+sign_in = "Войти"
+sign_up = "Зарегистрироваться"
+manger_dog = "Собака на сене"
+hero_text = "Управляйте своими финансами легко, быстро и надёжно"
+registration_form_username_field = "Имя пользователя"
+registration_form_email_field = "Адрес электронной почты"
+registration_form_password_field = "Пароль"
+error_messages = '{"EmailFormatInvalid":"Неверный формат электронной почты.","PasswordTooShort":"Пароль слишком короткий.","PasswordTooLong":"Пароль слишком длинный.","PasswordMustNotContainSpaces":"Пароль не должен содержать пробелов.","PasswordContainsInvalidCharacters":"Пароль содержит недопустимые символы.","PasswordMustContainUppercase":"Пароль должен содержать хотя бы одну заглавную букву.","PasswordMustContainLowercase":"Пароль должен содержать хотя бы одну строчную букву.","PasswordMustContainDigit":"Пароль должен содержать хотя бы одну цифру.","PasswordMustContainSpecial":"Пароль должен содержать хотя бы один специальный символ.","EmailTaken":"Этот адрес электронной почты уже занят.","InvalidCredentials":"Неверный адрес электронной почты или пароль.","StringIsEmpty":"Поле не должно быть пустым."}'
+no_account_register = "Нет аккаунта? Зарегистрируйтесь"
+have_account_login = "Уже есть аккаунт? Войдите"
+
+[languages]
+[languages.en]
+[languages.en.translations]
+title = "Manger Dog"
+auth = "Sign In"
+theme_toggle_button = "Switch between dark and light mode"
+manger_dog_icon = "Manger Dog icon"
+sign_in = "Sign in"
+sign_up = "Sign up"
+manger_dog = "Manger Dog"
+hero_text = "Manage your finances easily, quickly, securely"
+registration_form_username_field = "Username"
+registration_form_email_field = "Email"
+registration_form_password_field = "Password"
+error_messages = '{"EmailFormatInvalid":"Invalid email format.","PasswordTooShort":"Password is too short.","PasswordTooLong":"Password is too long.","PasswordMustNotContainSpaces":"Password must not contain spaces.","PasswordContainsInvalidCharacters":"Password contains invalid characters.","PasswordMustContainUppercase":"Password must contain at least one uppercase letter.","PasswordMustContainLowercase":"Password must contain at least one lowercase letter.","PasswordMustContainDigit":"Password must contain at least one digit.","PasswordMustContainSpecial":"Password must contain at least one special character.","EmailTaken":"This email is already taken.","InvalidCredentials":"Invalid email or password.","StringIsEmpty":"Field cannot be empty."}'
+no_account_register = "Don't have an account? Sign up"
+have_account_login = "Already have an account? Sign in"
+
+
+[extra]
+# Put all your custom variables here
+languages = [
+    { code = "en", name = "English" },
+    { code = "ru", name = "Русский" },
+]

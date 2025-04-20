@@ -6,7 +6,7 @@ use crate::session::{
 };
 use crate::{NamesConfig, QueriesConfig, SessionConfig, DB};
 use actix_web::http::StatusCode;
-use actix_web::{web, FromRequest, HttpRequest, HttpResponse, HttpResponseBuilder};
+use actix_web::{web, FromRequest, HttpRequest, HttpResponse};
 use bcrypt::{hash, verify, DEFAULT_COST};
 use proc_macros::error_type;
 use serde::de::DeserializeOwned;
@@ -18,8 +18,9 @@ use std::sync::Arc;
 use surrealdb::engine::remote::ws::Client;
 use surrealdb::method::Query;
 use surrealdb::opt::IntoQuery;
+use surrealdb::RecordId;
 
-type AuthResponse = Result<HttpResponseBuilder, EndpointError<AuthError>>;
+type AuthResponse = Result<HttpResponse, EndpointError<AuthError>>;
 type AuthResponseWithBody = Result<HttpResponse, EndpointError<AuthError>>;
 
 pub trait LoginData {
@@ -30,21 +31,16 @@ pub trait LoginData {
 
 #[derive(Deserialize)]
 struct IdAndPassword {
-    id: String,
+    id: RecordId,
     password: String,
 }
 pub async fn login(
-    creds: web::Json<impl LoginData + 'static>,
+    creds: web::Json<impl LoginData>,
     queries: Arc<QueriesConfig>,
     session_config: Arc<SessionConfig>,
 ) -> AuthResponse {
     let creds = creds.into_inner();
-    let user: Option<IdAndPassword> = DB
-        .query(queries.get_user_id_and_password_by_login)
-        .bind(("login", creds.get_login().clone()))
-        .await?
-        .take(0)?;
-
+    let user: Option<IdAndPassword> = get_id_and_password(&queries, &creds).await?;
     if let Some(id_and_password) = user {
         if validate_password(
             creds.get_password().as_str(),
@@ -55,7 +51,18 @@ pub async fn login(
             );
         }
     }
-    Err(EndpointError::new(AuthError::InvalidCredentials))
+    respond_with_client_error(AuthError::InvalidCredentials)
+}
+
+async fn get_id_and_password(
+    queries_config: &QueriesConfig,
+    creds: &impl LoginData,
+) -> Result<Option<IdAndPassword>, surrealdb::Error> {
+    let mut response = DB
+        .query(queries_config.get_user_id_and_password_by_login)
+        .bind(("login", creds.get_login().clone()))
+        .await?;
+    Ok(response.take(0)?)
 }
 
 pub async fn logout(
@@ -72,25 +79,36 @@ pub async fn logout(
 }
 
 /// This function should only be called on valid data
-pub async fn register<TUserdata, TQuery>(
+pub async fn register<TUserdata, TQuery, TUserdataError>(
     queries_config: Arc<QueriesConfig>,
     session_config: Arc<SessionConfig>,
-    register_config: Arc<RegisterConfig<TQuery, TUserdata>>,
+    register_config: Arc<RegisterConfig<TQuery, TUserdata, TUserdataError>>,
     creds: web::Json<TUserdata>,
 ) -> AuthResponse
 where
     TQuery: IntoQuery + Clone + Send + Sync,
     TUserdata: LoginData + Send + Sync,
+    TUserdataError: Serialize,
 {
-    let query = DB.query(register_config.query.clone());
     let mut creds = creds.into_inner();
+    let validation_result = (register_config.validate)(&creds);
+    if let Err(_) = validation_result {
+        return Ok(HttpResponse::Ok().json(validation_result));
+    }
+    if get_id_and_password(&queries_config, &creds)
+        .await?
+        .is_some()
+    {
+        return Ok(HttpResponse::Ok().json(Err::<(), _>(AuthError::EmailTaken)));
+    }
     let mut raw_password = creds.get_password_mut();
     hash_password(&mut raw_password)
         .map_err(|e| EndpointError::new(AuthError::PasswordHashingError).cause(e.to_string()))?;
+    let query = DB.query(register_config.query.clone());
     let query_with_bound_data = (register_config.bind_query_data)(query, creds);
     let id = query_with_bound_data
         .await?
-        .take::<Option<String>>("id")?
+        .take::<Option<RecordId>>("id")?
         .unwrap();
     Ok(respond_with_session_tokens(&queries_config, id, &session_config).await)
 }
@@ -117,7 +135,7 @@ pub async fn refresh(
         session_tokens.access,
         Some(session_tokens.refresh),
     );
-    Ok(response)
+    Ok(response.finish())
 }
 
 pub async fn get_userdata<TUserdata: DeserializeOwned + Serialize>(
@@ -144,11 +162,11 @@ pub async fn get_userdata<TUserdata: DeserializeOwned + Serialize>(
 async fn get_user_id(
     access_token: String,
     queries_config: &QueriesConfig,
-) -> Result<String, EndpointError<AuthError>> {
+) -> Result<RecordId, EndpointError<AuthError>> {
     DB.query(queries_config.get_user_id_by_access_token)
         .bind(("access_token", access_token))
         .await?
-        .take::<Option<String>>("id")?
+        .take::<Option<RecordId>>("id")?
         .ok_or(EndpointError::new(DbError))
 }
 
@@ -161,26 +179,31 @@ pub enum AuthError {
     DbError,
     KeyExpired,
     NoRefreshToken,
+    EmailTaken,
 }
 
-pub type BindQueryData<TCreds> = Box<dyn Fn(Query<Client>, TCreds) -> Query<Client> + Send + Sync>;
-pub struct RegisterConfig<TQuery, TCreds>
+pub type BindQueryData<TUserdata> =
+    Box<dyn Fn(Query<Client>, TUserdata) -> Query<Client> + Send + Sync>;
+pub type Validator<TUserdata, TUserdataError> = fn(&TUserdata) -> Result<(), TUserdataError>;
+pub struct RegisterConfig<TQuery, TUserdata, TUserdataError>
 where
     TQuery: IntoQuery + Send + Sync,
-    TCreds: Send + Sync,
+    TUserdata: Send + Sync,
 {
     pub query: TQuery,
-    pub bind_query_data: BindQueryData<TCreds>,
+    pub bind_query_data: BindQueryData<TUserdata>,
+    pub validate: Validator<TUserdata, TUserdataError>,
 }
 
-impl<TCreds> RegisterConfig<String, TCreds>
+impl<TUserdata, TUserdataError> RegisterConfig<String, TUserdata, TUserdataError>
 where
-    TCreds: Send + Sync,
+    TUserdata: Send + Sync,
 {
-    pub fn from_names(
+    pub fn with_generated_query(
         table_name: &str,
         names: Vec<&str>,
-        bind_query_data_fn: BindQueryData<TCreds>,
+        bind_query_data_fn: BindQueryData<TUserdata>,
+        validator: Validator<TUserdata, TUserdataError>,
     ) -> Self {
         let mut query = format!("INSERT INTO {} ", table_name);
         query += "{";
@@ -188,21 +211,21 @@ where
             .iter()
             .for_each(|n| query += format!("{0}:${0},", n).as_str());
         query.pop();
-        query += "}";
-        println!("Register config query built: `{}`", query);
+        query += "} RETURN id";
         Self {
             query,
             bind_query_data: bind_query_data_fn,
+            validate: validator,
         }
     }
 }
 
 #[macro_export]
 macro_rules! build_register_config {
-    ($ty:ty, $table_name:literal { $($db_field_name: literal: $struct_field: ident),*$(,)? }) => {
-        RegisterConfig::<String, $ty>::from_names($table_name, vec![$($db_field_name,)*], Box::new(|query: Query<Client>, creds:$ty| {
-            query$(.bind(($db_field_name, creds.$struct_field)))*
-        }))
+    ($table_name:literal, |$ident:ident:$ty:ty|$ty_error:ty| { query_config: { $($db_field_name: literal: $value: expr),*$(,)? } validator: $validator:expr } ) => {
+        RegisterConfig::<String, $ty, $ty_error>::with_generated_query($table_name, vec![$($db_field_name,)*], Box::new(|query: Query<Client>, $ident:$ty| {
+            query$(.bind(($db_field_name, $value)))*
+        }), |$ident| $validator)
     };
 }
 
@@ -218,9 +241,9 @@ fn validate_password(password: &str, hash: &str) -> bool {
 
 async fn respond_with_session_tokens(
     queries_config: &QueriesConfig,
-    user_id: String,
+    user_id: RecordId,
     session_config: &SessionConfig,
-) -> HttpResponseBuilder {
+) -> HttpResponse {
     let session_tokens = create_session(&queries_config, session_config, user_id).await;
 
     let mut response = HttpResponse::Ok();
@@ -230,13 +253,13 @@ async fn respond_with_session_tokens(
         session_tokens.access,
         Some(session_tokens.refresh),
     );
-    response
+    response.finish()
 }
 
-async fn respond_with_tokens_deletion(session_config: &SessionConfig) -> HttpResponseBuilder {
+async fn respond_with_tokens_deletion(session_config: &SessionConfig) -> HttpResponse {
     let mut response = HttpResponse::Ok();
     delete_tokens(&mut response, session_config);
-    response
+    response.finish()
 }
 
 impl<T: Error> From<T> for EndpointError<AuthError> {
@@ -256,7 +279,13 @@ fn get_access_token(
         .to_string())
 }
 
-pub struct UserId(pub String);
+fn respond_with_client_error<T: GetStatusCode + Serialize + std::fmt::Debug>(
+    error: impl Serialize,
+) -> Result<HttpResponse, EndpointError<T>> {
+    Ok(HttpResponse::Ok().json(Err::<(), _>(error)))
+}
+
+pub struct UserId(pub RecordId);
 
 impl FromRequest for UserId {
     type Error = EndpointError<AuthError>;

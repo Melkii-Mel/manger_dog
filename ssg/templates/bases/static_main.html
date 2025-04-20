@@ -1,0 +1,38 @@
+{# <!--suppress HtmlUnknownTarget --> #}
+{% import "common/macros.html" as macros %}
+{% extends "common/base_static.html" %}
+
+{% block header %}
+
+<div class="header-left">
+    <a href="{{macros::lang()}}/"><img alt="{{ trans(key='manger_dog_icon', lang=lang) }}" class="landing-app-icon"
+                                       src="/static/images/favicon.svg"></a>
+</div>
+<div class="header-center">
+
+</div>
+<div class="header-right">
+    {{ macros::github_button(href="https://github.com/Melkii-Mel/manger_dog") }}
+    <span class="separator"></span>
+    {{ macros::language_select() }}
+    {{ macros::theme_button() }}
+    <span class="separator"></span>
+    {{ macros::sign_in() }}
+    {{ macros::sign_up() }}
+</div>
+{{ macros::burger(content = [
+`<span class="separator-horizontal"></span>`,
+macros::sign_up(),
+macros::sign_in(),
+macros::theme_button(),
+macros::language_select(),
+]) }}
+
+
+{% endblock header %}
+
+{%- block footer -%}
+
+TODO
+
+{% endblock footer %}

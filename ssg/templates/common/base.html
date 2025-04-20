@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>{% block title %}{{ trans(key="title", lang=lang) }}{% endblock title %}</title>
+    {% block meta %}{% endblock meta %}
+    {% block stylesheets %}
+    {# <!--suppress HtmlUnknownTarget --> #}
+    <link href="/static/style.css" rel="stylesheet">
+    {% endblock stylesheets %}
+</head>
+<body>
+{% block body %}{% endblock body %}
+{% block scripts %}
+{% endblock scripts %}
+</body>
+</html>

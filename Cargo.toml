@@ -4,7 +4,7 @@ members = [
     "actix-surreal-starter-macros",
     "proc_macros",
     "server",
-    "web_client",
+    "web_client", "zola-watcher",
 ]
 resolver = "2"
 

@@ -1,22 +1,17 @@
 [
   {
-    "mount_path": "/static/",
-    "dir": "../web_client/static/",
-    "use_index": false
-  },
-  {
-    "mount_path": "/landing/",
-    "dir": "../web_client/landing/",
+    "mount_path": "/ru/",
+    "dir": "../web/generated/",
     "use_index": true
   },
   {
-    "mount_path": "/auth/",
-    "dir": "../web_client/auth/",
+    "mount_path": "/",
+    "dir": "../web/generated/",
     "use_index": true
   },
   {
     "mount_path": "/app/",
-    "dir": "../web_client/dist/",
+    "dir": "../web/app/",
     "use_index": true
   }
 ]

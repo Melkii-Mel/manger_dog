@@ -1,8 +1,9 @@
-use thiserror::Error;
 use crate::pre_built::regexes;
 use actix_surreal_starter_macros::{impl_display_for_error, impl_validators};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Error, Clone, Serialize, Deserialize)]
 pub enum ValidationError {
     StringIsEmpty,
     StringTooShort,
