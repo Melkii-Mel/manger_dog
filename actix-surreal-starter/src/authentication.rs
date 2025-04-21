@@ -229,8 +229,9 @@ macro_rules! build_register_config {
     };
 }
 
+// TODO: extract cost factor into configuration
 fn hash_password(password: &mut String) -> Result<(), Box<dyn Error>> {
-    let result = hash(&password, DEFAULT_COST);
+    let result = hash(&password, 8);
     *password = result?;
     Ok(())
 }
