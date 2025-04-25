@@ -5,6 +5,15 @@
 {% block header %}
 
 <script src="/static/js/utils.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (authorized()) {
+            [...document.querySelectorAll(".sign-in-button")].concat([...document.querySelectorAll(".sign-up-button")]).forEach(b => {
+                b.href = "/app";
+            })
+        }
+    })
+</script>
 
 <div class="header-left">
     <a href="{{macros::lang()}}/"><img alt="{{ trans(key='manger_dog_icon', lang=lang) }}" class="landing-app-icon"
