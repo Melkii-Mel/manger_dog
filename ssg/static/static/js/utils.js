@@ -9,8 +9,13 @@ function get_cookie_by_name(name) {
     return undefined;
 }
 
+function authorized() {
+    // HACK: Hardcoded value
+    return get_cookie_by_name("refresh_token_dummy") !== undefined;
+}
+
 function go_to_app_if_authorized() {
-    if (get_cookie_by_name("refresh_token_dummy") !== undefined) {
+    if (authorized()) {
         window.location.href = "/app";
     }
 }
