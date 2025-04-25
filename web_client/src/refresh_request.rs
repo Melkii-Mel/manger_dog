@@ -60,5 +60,5 @@ pub fn refresh_or_relocate() -> Shared<LocalBoxFuture<'static, Result<(), Refres
 
 pub fn to_auth() -> Result<(), DomInteractionError> {
     // TODO: Do something about the language. Perhaps should save preferred language in the settings and then load it or something
-    set_location_href("/auth") // HACK: Hardcoded value
+    set_location_href("/auth?mode=sign_in") // HACK: Hardcoded value
 }
