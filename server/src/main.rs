@@ -1,8 +1,8 @@
 mod api_datatypes;
 
-use crate::api_datatypes::{configure_endpoints, Creds, Register, RegisterError};
+use entities::{configure_endpoints, Creds, Register, RegisterError};
 use actix_surreal_starter::{
-    build_register_config, ActixSurrealStarter, DbAccessConfig, LoginData, NamesConfig,
+    build_register_config, ActixSurrealStarter, DbAccessConfig, NamesConfig,
     RegisterConfig, ServerStarter, Users,
 };
 use actix_web::web::Json;
@@ -59,34 +59,6 @@ async fn main() -> std::io::Result<()> {
         },
     )
     .await
-}
-
-impl LoginData for Register {
-    fn get_password_mut(&mut self) -> &mut String {
-        &mut self.password
-    }
-
-    fn get_password(&self) -> &String {
-        &self.password
-    }
-
-    fn get_login(&self) -> &String {
-        &self.email
-    }
-}
-
-impl LoginData for Creds {
-    fn get_password_mut(&mut self) -> &mut String {
-        &mut self.password
-    }
-
-    fn get_password(&self) -> &String {
-        &self.password
-    }
-
-    fn get_login(&self) -> &String {
-        &self.email
-    }
 }
 
 // TODO: Come up with the solution for validating unsigned integers for sign and integers for size
