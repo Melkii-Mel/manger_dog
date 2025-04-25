@@ -8,7 +8,7 @@
     <script>
 
         document.cookie.split(';').forEach(c => {
-            if (c.startsWith("refresh_token_dummy=")) {
+            if (c.trim().startsWith("refresh_token_dummy=")) {
                 window.location.href = "/app";
             }
         })
