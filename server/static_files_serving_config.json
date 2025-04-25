@@ -5,13 +5,13 @@
     "use_index": true
   },
   {
-    "mount_path": "/",
-    "dir": "../web/generated/",
+    "mount_path": "/app/",
+    "dir": "../web/app/",
     "use_index": true
   },
   {
-    "mount_path": "/app/",
-    "dir": "../web/app/",
+    "mount_path": "/",
+    "dir": "../web/generated/",
     "use_index": true
   }
 ]

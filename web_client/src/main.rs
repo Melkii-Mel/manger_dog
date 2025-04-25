@@ -1,9 +1,17 @@
+mod access_handler;
+mod refresh_request;
+mod bindings;
+
+use crate::access_handler::get_access;
 use gloo_net::http::Request;
 use gloo_net::Error;
 use serde::de::DeserializeOwned;
 use wasm_bindgen::JsValue;
 use yew::platform::spawn_local;
 use yew::prelude::*;
+
+#[global_allocator]
+static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[function_component]
 fn App() -> Html {
@@ -29,6 +37,9 @@ fn App() -> Html {
 }
 
 fn main() {
+    spawn_local(async {
+        get_access().await.unwrap();
+    });
     yew::Renderer::<App>::new().render();
 }
 

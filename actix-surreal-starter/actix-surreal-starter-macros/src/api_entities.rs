@@ -62,8 +62,11 @@ macro_rules! api_entities {
             fn paths() -> &'static [&'static str] {
                 PATHS.get(Self::table_name()).unwrap()
             }
-            fn table_name() -> &'static str {
+            pub fn table_name() -> &'static str {
                 $db_table_name
+            }
+            pub fn request_address() -> &'static str {
+                concat!("/api/", $db_table_name)
             }
             fn query_builder() -> actix_surreal_starter::query_builder::QueryBuilder {
                 actix_surreal_starter::query_builder::QueryBuilder {

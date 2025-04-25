@@ -181,14 +181,14 @@
         <script>
             {
                 const form = document.currentScript.parentElement;
-                if (mode() === "sign_in") {
-                    form.classList.add("gone");
-                } else {
+                if (mode() !== "sign_in") {
                     form_init(form, {
                         username: common_validators.not_empty,
                         email: common_validators.email,
                         password: (e) => common_validators.password(e, 0),
                     }, "/register");
+                } else {
+                    form.classList.add("gone");
                 }
             }
         </script>
@@ -205,13 +205,13 @@
         <script>
             {
                 const form = document.currentScript.parentElement;
-                if (mode() !== "sign_in") {
-                    form.classList.add("gone");
-                } else {
+                if (mode() === "sign_in") {
                     form_init(document.currentScript.parentElement, {
                         email: common_validators.not_empty,
                         password: common_validators.not_empty,
                     }, "/login");
+                } else {
+                    form.classList.add("gone");
                 }
             }
         </script>

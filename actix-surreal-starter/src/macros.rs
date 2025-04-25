@@ -23,20 +23,6 @@ macro_rules! to_arc {
     };
 }
 
-macro_rules! builder {
-    ($($argument:ident: $ty:ty),*$(,)*) => {
-        builder!($($argument: $ty => $argument,)*)
-    };
-    ($($argument:ident: $ty:ty => $logic: expr),*$(,)*) => {
-        $(
-        pub fn $argument(mut self, $argument: $ty) -> Self {
-            self.$argument = Some($logic);
-            self
-        }
-        )*
-    };
-}
-
 macro_rules! enclose {
     (($($arc:ident),*) $closure:expr) => {
         {

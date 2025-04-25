@@ -1,9 +1,9 @@
 [workspace]
 members = [
     "actix-surreal-starter",
-    "actix-surreal-starter-macros",
-    "proc_macros",
-    "server",
+    "actix-surreal-starter/actix-surreal-starter-macros", "actix-surreal-starter/actix-surreal-starter-types",
+    "actix-surreal-starter/actix-surreal-starter-types/proc_macros",
+    "server", "utils",
     "web_client", "zola-watcher",
 ]
 resolver = "2"

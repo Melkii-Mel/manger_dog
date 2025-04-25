@@ -6,8 +6,8 @@ use serde::Serialize;
 use std::option::Option;
 use surrealdb::RecordId;
 use thiserror::Error;
-// NOTE: Could benefit from using pre-built queries (built during initialization of the server) for tables to not have to format the query each time at runtime.
-// NOTE: Should consider reducing String clowning where possible.
+// OPTIMIZE: Could benefit from using pre-built queries (built during initialization of the server) for tables to not have to format the query each time at runtime.
+// OPTIMIZE: Should consider reducing String clowning where possible.
 
 #[derive(Debug, Error)]
 pub enum CrudError {

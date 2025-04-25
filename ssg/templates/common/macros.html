@@ -39,6 +39,7 @@
                 });
                 select.addEventListener("change", function () {
                     const selectedLang = select.value;
+                    localStorage.setItem("lang", selectedLang);
                     const defaultLanguage = "{{ config.default_language }}";
                     const pathParts = window.location.pathname.split("/");
                     if (selectedLang === defaultLanguage) {
