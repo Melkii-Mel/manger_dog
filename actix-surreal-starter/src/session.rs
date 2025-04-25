@@ -153,7 +153,7 @@ pub fn build_session_token_cookies(
                 session_config.refresh_token_dummy_cookie_name,
                 refresh_token.expiration.as_str(),
                 false,
-                Some("/refresh"),
+                None,
                 session_config.refresh_token_expiration,
             );
     }
