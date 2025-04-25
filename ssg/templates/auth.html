@@ -6,6 +6,13 @@
 
 <div class="auth-block">
     <script>
+
+        document.cookie.split(';').forEach(c => {
+            if (c.startsWith("refresh_token_dummy=")) {
+                window.location.href = "/app";
+            }
+        })
+
         const error_messages = JSON.parse(`{{ trans(key='error_messages', lang=lang) | safe }}`);
         const common_validators = {
             not_empty: (/** @type {HTMLInputElement} */ e) => {
