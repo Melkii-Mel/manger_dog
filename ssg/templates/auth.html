@@ -9,6 +9,7 @@
     <script>
         go_to_app_if_authorized()
         const error_messages = JSON.parse(`{{ trans(key='error_messages', lang=lang) | safe }}`);
+
         function mode() {
             const params = new URLSearchParams(window.location.search);
             return params.get("mode");
@@ -25,18 +26,17 @@
         autocomplete="new-password",
         name="password") }}
         <button type="submit">{{ trans(key='sign_up', lang=lang) }}</button>
-        <a href="?mode=sign_in">{{ trans(key='have_account_login', lang=lang) }}</a>
+        <a class="change-auth-mode" href="?mode=sign_in">{{ trans(key='have_account_login', lang=lang) }}</a>
         <script>
+            const sign_up_form = document.currentScript.parentElement;
             {
-                const form = document.currentScript.parentElement;
-                if (mode() !== "sign_in") {
-                    form_init(form, {
-                        username: common_validators.not_empty,
-                        email: common_validators.email,
-                        password: (e) => common_validators.password(e, 0),
-                    }, "/register");
-                } else {
-                    form.classList.add("gone");
+                form_init(sign_up_form, {
+                    username: common_validators.not_empty,
+                    email: common_validators.email,
+                    password: (e) => common_validators.password(e, 0),
+                }, "/register");
+                if (mode() === "sign_in") {
+                    sign_up_form.classList.add("gone");
                 }
             }
         </script>
@@ -49,21 +49,30 @@
         autocomplete="current-password",
         name="password") }}
         <button type="submit">{{ trans(key='sign_in', lang=lang) }}</button>
-        <a href="?mode=sign_up">{{ trans(key='no_account_register', lang=lang) }}</a>
+        <a class="change-auth-mode" href="?mode=sign_up">{{ trans(key='no_account_register', lang=lang) }}</a>
         <script>
+            const sign_in_form = document.currentScript.parentElement;
             {
-                const form = document.currentScript.parentElement;
-                if (mode() === "sign_in") {
-                    form_init(document.currentScript.parentElement, {
-                        email: common_validators.not_empty,
-                        password: common_validators.not_empty,
-                    }, "/login");
-                } else {
-                    form.classList.add("gone");
+                form_init(document.currentScript.parentElement, {
+                    email: common_validators.not_empty,
+                    password: common_validators.not_empty,
+                }, "/login");
+                if (mode() !== "sign_in") {
+                    sign_in_form.classList.add("gone");
                 }
             }
         </script>
     </form>
+    <script>
+        document.querySelectorAll(".change-auth-mode").forEach(a => a.addEventListener("click", e => {
+            e.preventDefault();
+            const url = new URL(window.location.href);
+            url.searchParams.set("mode", a.href.split("=")[1]);
+            history.pushState(null, "", url.href);
+            sign_up_form.classList.toggle("gone");
+            sign_in_form.classList.toggle("gone");
+        }))
+    </script>
 </div>
 
 {% endblock main %}
