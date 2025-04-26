@@ -6,6 +6,9 @@
 
 <script src="/static/js/utils.js"></script>
 <script>
+    const languages = JSON.parse('{{config.extra.languages | json_encode | safe}}').map(l => l.code);
+    languages.current = '{{lang}}';
+    languages.default = '{{config.default_language}}';
     document.addEventListener("DOMContentLoaded", () => {
         if (authorized()) {
             [...document.querySelectorAll(".sign-in-button")].concat([...document.querySelectorAll(".sign-up-button")]).forEach(b => {

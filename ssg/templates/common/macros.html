@@ -30,34 +30,7 @@
             {{ language.name }}
         </option>
         {% endfor %}
-        <script>
-            {
-                const languages = JSON.parse('{{config.extra.languages | json_encode | safe}}').map(l => l.code);
-                const select = document.currentScript.closest(".language-select");
-                window.addEventListener("pageshow", () => {
-                    select.value = "{{lang}}";
-                });
-                select.addEventListener("change", function () {
-                    const selectedLang = select.value;
-                    localStorage.setItem("lang", selectedLang);
-                    const defaultLanguage = "{{ config.default_language }}";
-                    const pathParts = window.location.pathname.split("/");
-                    if (selectedLang === defaultLanguage) {
-                        pathParts.splice(1, 1);
-                        if (pathParts.length === 1) {
-                            pathParts.push("");
-                        }
-                    } else {
-                        if (languages.includes(pathParts[1])) {
-                            pathParts[1] = selectedLang;
-                        } else {
-                            pathParts.splice(0, 1, selectedLang);
-                        }
-                    }
-                    window.location.href = pathParts.join("/");
-                });
-            }
-        </script>
+        <script src="/static/js/language-select.js"></script>
     </select>
 </label>
 {% endmacro %}
@@ -98,24 +71,7 @@
         {{ item | safe }}
         {% endfor %}
     </div>
-    <script>
-        {
-            const burger_items = document.currentScript.closest(".burger-items")
-            document.addEventListener("DOMContentLoaded", () => {
-                const burger_button = burger_items.querySelector(".burger-button");
-                const burger_menu = burger_items.querySelector(".burger-menu");
-                const burger_menu_close_button = burger_items.querySelector(".burger-menu-close-button");
-                document.body.appendChild(burger_menu);
-                burger_items.parentElement.appendChild(burger_button);
-                burger_button.addEventListener("click", () => {
-                    burger_menu.classList.toggle("burger-menu-open");
-                })
-                burger_menu_close_button.addEventListener("click", () => {
-                    burger_menu.classList.remove("burger-menu-open");
-                })
-            })
-        }
-    </script>
+    <script src="/static/js/init-burger.js"></script>
 </div>
 {% endmacro %}
 
