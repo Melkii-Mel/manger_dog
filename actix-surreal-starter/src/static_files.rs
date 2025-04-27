@@ -2,9 +2,12 @@ use crate::static_files::StaticFilesSetupError::EntityNotFound;
 use crate::{EnvNamesConfig, EnvValues};
 use actix_files::Files;
 use actix_web::web::ServiceConfig;
+use actix_web::Responder;
+use actix_web::{web, HttpResponse};
 use colored::Colorize;
 use log::error;
 use serde::Deserialize;
+use std::fs::{read_to_string, File};
 use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -31,7 +34,13 @@ pub enum StaticFilesSetupError {
 struct StaticEndpointConfig {
     mount_path: String,
     dir: String,
-    use_index: bool,
+    index: Option<Index>,
+}
+
+#[derive(Debug, Deserialize)]
+enum Index {
+    Single,
+    Multiple,
 }
 
 pub struct StaticFilesSetupHandler {
@@ -53,8 +62,8 @@ impl StaticFilesSetupHandler {
                     e.to_string(),
                 )
             })?;
-        let config_text = std::fs::read_to_string(config_file_path)
-            .map_err(|e| StaticFilesSetupError::IOError(e))?;
+        let config_text =
+            read_to_string(config_file_path).map_err(|e| StaticFilesSetupError::IOError(e))?;
         let mut endpoints: Vec<StaticEndpointConfig> = serde_json::from_str(&config_text)
             .map_err(|e| StaticFilesSetupError::ConfigFileParsingConfig(e))?;
         let mut errors: Vec<StaticFilesSetupError> = Vec::new();
@@ -84,7 +93,7 @@ impl StaticFilesSetupHandler {
                     return None;
                 }
                 let path = path.join("index.html");
-                if e.use_index && !path.exists() {
+                if e.index.is_some() && !path.exists() {
                     errors.push(get_path_not_found_error(&path));
                     return None;
                 }
@@ -105,23 +114,42 @@ impl StaticFilesSetupHandler {
     }
 
     pub fn config(&self, cfg: &mut ServiceConfig) {
-        self.endpoints.iter().for_each(|e| {
-            let serve = if e.use_index {
-                serve_files_with_index
-            } else {
-                serve_files
+        self.endpoints.iter().for_each(|static_endpoint_config| {
+            if let Err(e) = std::fs::read_dir(&static_endpoint_config.dir) {
+                println!(
+                    "Failed to read directory: {}\n{}",
+                    static_endpoint_config.dir, e
+                );
+            }
+            let mut files_service = |files_config: fn(Files) -> Files| {
+                cfg.service(serve_files_with_config(
+                    &static_endpoint_config.mount_path,
+                    &static_endpoint_config.dir,
+                    files_config,
+                ));
             };
-            cfg.service(serve(&e.mount_path, &e.dir));
+            match &static_endpoint_config.index {
+                None => files_service(|f| f),
+                Some(index) => match index {
+                    Index::Single => {
+                        let dir = Arc::new(static_endpoint_config.dir.clone());
+                        cfg.route(
+                            &static_endpoint_config.mount_path,
+                            web::get().to(move || serve_index(dir.clone())),
+                        );
+                    }
+                    Index::Multiple => files_service(|f| f.index_file("index.html")),
+                },
+            }
         });
     }
 }
 
-pub fn serve_files_with_index(mount_path: &str, dir: &str) -> Files {
-    serve_files_with_config(mount_path, dir, |f| f.index_file("index.html"))
-}
-
-pub fn serve_files(mount_path: &str, dist_dir: &str) -> Files {
-    serve_files_with_config(mount_path, dist_dir, |f| f)
+async fn serve_index(dir: Arc<String>) -> impl Responder {
+    let index = read_to_string(Path::new(&*dir).join("index.html"))
+        .inspect_err(|e| println!("Failed to read index.html file from {}\n{}", &*dir, e))
+        .unwrap_or("".to_string());
+    HttpResponse::Ok().content_type("text/html").body(index)
 }
 
 pub fn serve_files_with_config(

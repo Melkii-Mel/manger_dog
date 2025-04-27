@@ -1,17 +1,21 @@
 [
   {
-    "mount_path": "/ru/",
-    "dir": "../web/generated/",
-    "use_index": true
+    "mount_path": "/app/static/",
+    "dir": "../web/app/"
   },
   {
-    "mount_path": "/app/",
+    "mount_path": "/app/{tail:.*}",
     "dir": "../web/app/",
-    "use_index": true
+    "index": "Single"
+  },
+  {
+    "mount_path": "/ru/",
+    "dir": "../web/generated/",
+    "index": "Multiple"
   },
   {
     "mount_path": "/",
     "dir": "../web/generated/",
-    "use_index": true
+    "index": "Multiple"
   }
 ]
