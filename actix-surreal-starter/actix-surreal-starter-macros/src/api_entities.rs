@@ -17,6 +17,7 @@ macro_rules! api_entities {
             $($db_table_name => &[$($($path_to_ownership),*)?] as &[&str],)*
         };
 
+        #[cfg(feature = "server")]
         pub fn configure_endpoints(cfg: &mut actix_web::web::ServiceConfig) {
             cfg
             $(
@@ -68,6 +69,7 @@ macro_rules! api_entities {
             pub fn request_address() -> &'static str {
                 concat!("/api/", $db_table_name)
             }
+            #[cfg(feature = "server")]
             fn query_builder() -> actix_surreal_starter::query_builder::QueryBuilder {
                 actix_surreal_starter::query_builder::QueryBuilder {
                     paths: Self::paths(),
