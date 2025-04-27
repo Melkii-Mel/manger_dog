@@ -9,6 +9,11 @@
     "index": "Single"
   },
   {
+    "mount_path": "/app",
+    "dir": "../web/app/",
+    "index": "Single"
+  },
+  {
     "mount_path": "/ru/",
     "dir": "../web/generated/",
     "index": "Multiple"
