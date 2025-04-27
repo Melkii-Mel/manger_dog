@@ -1,14 +1,23 @@
 mod access_handler;
-mod refresh_request;
 mod bindings;
+mod navbar;
+mod navigation;
+mod refresh_request;
+mod page_content;
+mod config;
+mod not_found;
 
 use crate::access_handler::get_access;
+use crate::navigation::{navigation_item};
 use gloo_net::http::Request;
 use gloo_net::Error;
 use serde::de::DeserializeOwned;
 use wasm_bindgen::JsValue;
+use web_sys::js_sys::Math::random;
 use yew::platform::spawn_local;
 use yew::prelude::*;
+use crate::config::{set_config, Config};
+use crate::page_content::RenderPage;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -29,14 +38,29 @@ fn App() -> Html {
     };
 
     html! {
+        <>
+        {navigation_item("/".to_string(), None, "NAVIGATER!!!".to_string())}
+        {navigation_item("/aaaa".to_string(), None, "AAAAAAAAA!!!".to_string())}
+        <h1>{"Hello Worlds"}</h1>
         <div>
             <button {onclick}>{ "+1" }</button>
             <p>{ *counter }</p>
+            <p>{format!("Random stuff: {}", random())}</p>
         </div>
+        <h1>{"This is the page itself::::::::"}</h1>
+        <div>
+            <RenderPage></RenderPage>
+        </div>
+        </>
     }
 }
 
 fn main() {
+    let config = Config {
+        base_url: "/app",
+        routes: Default::default(),
+    };
+    set_config(config);
     spawn_local(async {
         get_access().await.unwrap();
     });
