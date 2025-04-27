@@ -131,7 +131,7 @@ pub async fn refresh(
                 session_tokens.access,
                 Some(session_tokens.refresh),
             );
-            Ok(response.finish())
+            Ok(response.json(Ok::<(),()>(())))
         }
     }
 }
@@ -142,7 +142,7 @@ pub async fn get_userdata<TUserdata: DeserializeOwned + Serialize>(
     queries_config: Arc<QueriesConfig>,
 ) -> actix_surreal_types::ResponseResult {
     match get_access_token(&http_request, &session_config) {
-        Ok(access_token) => Ok(HttpResponse::Ok().content_type("application/json").json(
+        Ok(access_token) => Ok(HttpResponse::Ok().json(
             DB.query(queries_config.get_userdata_by_id)
                 .bind(("id", get_user_id(access_token, &queries_config).await?))
                 .await?
