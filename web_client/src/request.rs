@@ -25,6 +25,7 @@ impl RequestConfig {
     }
 }
 
+#[allow(dead_code)]
 pub enum Method {
     GET,
     POST,
