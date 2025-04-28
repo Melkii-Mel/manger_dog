@@ -25,11 +25,19 @@ impl RequestConfig {
     }
 }
 
+pub enum Method {
+    GET,
+    POST,
+    PUT,
+    PATCH,
+    DELETE,
+}
+
 thread_local! {
     static REQUEST_CONFIG: OnceCell<Rc<RequestConfig>> = OnceCell::new();
 }
 
-pub fn request<T, F>(url: &str, value: impl Serialize, callback: F)
+pub fn request<T, F>(method: Method, url: &str, value: impl Serialize, callback: F)
 where
     F: Fn(T) + 'static,
     T: DeserializeOwned + Debug,
@@ -49,12 +57,20 @@ where
         )));
     }
     spawn_local(async move {
-        match Request::post(&url)
-            .header("Content-Type", "application/json")
-            .body(value)
-            .unwrap()
-            .send()
-            .await
+        match {
+            match method {
+                Method::GET => Request::get,
+                Method::POST => Request::post,
+                Method::PUT => Request::put,
+                Method::PATCH => Request::patch,
+                Method::DELETE => Request::delete,
+            }
+        }(&url)
+        .header("Content-Type", "application/json")
+        .body(value)
+        .unwrap()
+        .send()
+        .await
         {
             Ok(res) => {
                 let result = res.json::<T>().await;

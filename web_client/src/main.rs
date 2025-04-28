@@ -16,6 +16,7 @@ use crate::request::{request, RequestConfig};
 use web_sys::js_sys::Math::random;
 use yew::platform::spawn_local;
 use yew::prelude::*;
+use crate::request::Method::POST;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -27,7 +28,7 @@ fn App() -> Html {
         let counter = counter.clone();
         move |_| {
             let counter = counter.clone();
-            request("/increment", *counter, move |res| {
+            request(POST, "/increment", *counter, move |res| {
                 counter.set(res);
             })
         }
