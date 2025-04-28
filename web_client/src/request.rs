@@ -1,3 +1,4 @@
+use crate::utils::log;
 use gloo_net::http::Request;
 use once_cell::unsync::OnceCell;
 use serde::de::DeserializeOwned;
@@ -97,6 +98,3 @@ where
     });
 }
 
-fn log(str: &str) {
-    web_sys::console::log_1(&JsValue::from_str(str));
-}

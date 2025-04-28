@@ -1,22 +1,25 @@
 mod access_handler;
+mod base_components;
+mod base_hooks;
 mod bindings;
 mod config;
 mod navbar;
 mod navigation;
 mod not_found;
-mod page_content;
 mod refresh_request;
 mod request;
+mod utils;
 
 use crate::access_handler::get_access;
+use crate::base_components::page::Page;
 use crate::config::{set_config, Config};
-use crate::navigation::navigation_item;
-use crate::page_content::RenderPage;
+use crate::navigation::NavigationItem;
+use crate::navigation::NavigationItemGroup;
+use crate::request::Method::POST;
 use crate::request::{request, RequestConfig};
 use web_sys::js_sys::Math::random;
 use yew::platform::spawn_local;
 use yew::prelude::*;
-use crate::request::Method::POST;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -36,17 +39,27 @@ fn App() -> Html {
 
     html! {
         <>
-        {navigation_item("/".to_string(), None, "NAVIGATER!!!".to_string())}
-        {navigation_item("/aaaa".to_string(), None, "AAAAAAAAA!!!".to_string())}
+        <NavigationItemGroup url="/">
+            <NavigationItem url="/home">{"Home"}</NavigationItem>
+            <NavigationItem url="/settings">{"Settings"}</NavigationItem>
+        </NavigationItemGroup>
+        <NavigationItemGroup url="/home">
+            <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
+            <NavigationItem url="/user">{"User"}</NavigationItem>
+        </NavigationItemGroup>
+        <NavigationItemGroup url="/settings">
+            <NavigationItem url="/profile">{"Profile"}</NavigationItem>
+            <NavigationItem url="/language">{"Language"}</NavigationItem>
+        </NavigationItemGroup>
         <h1>{"Hello Worlds"}</h1>
         <div>
             <button {onclick}>{ "+1" }</button>
             <p>{ *counter }</p>
             <p>{format!("Random stuff: {}", random())}</p>
         </div>
-        <h1>{"This is the page itself::::::::"}</h1>
+        <h1>{"This is the page itself:"}</h1>
         <div>
-            <RenderPage></RenderPage>
+            <Page/>
         </div>
         </>
     }
@@ -56,9 +69,21 @@ fn main() {
     let config = Config {
         base_url: "/app",
         routes: routes!(
-            "/aaaa" => {
-                <h1>{"Let us scream togetha. AAAAAAAAAAAAAAAAAAAAAA"}</h1>
-            }
+            "/" => {
+                <>
+                <h1>{"MAIN PAGE"}</h1>
+                </>
+            },
+            "/home" => {"Welcome Home"},
+            "/home" => [
+                "/user" => {"This is your profile"},
+                "/dashboard" => {"The most essential info out there... would be here"},
+            ],
+            "/settings" => {"Welcome to settings"},
+            "/settings" => [
+                "/profile" => {"Delete yourself??"},
+                "/language" => {"En/Ru"},
+            ],
         ),
     };
     RequestConfig::init(RequestConfig::with_default_messages());
