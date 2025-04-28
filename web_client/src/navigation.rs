@@ -2,8 +2,8 @@ use crate::config::get_config;
 use std::collections::HashMap;
 use wasm_bindgen::JsValue;
 use web_sys::{window, CustomEvent, MouseEvent};
-use yew::{html, Callback, Html};
 use yew::KeyboardEvent;
+use yew::{html, Callback, Html};
 
 pub type Routes = HashMap<&'static str, Html>;
 
@@ -63,11 +63,7 @@ pub fn change_url(path: &str) {
         .push_state_with_url(
             &JsValue::NULL,
             "",
-            Some(&format!(
-                "{}{}",
-                get_config().base_url,
-                path
-            )),
+            Some(&format!("{}{}", get_config().base_url, path)),
         )
         .expect("failed to push new url into history while trying to change url");
     let event = CustomEvent::new(URL_CHANGED).expect("failed to create URL_CHANGED event");
@@ -85,6 +81,6 @@ pub fn navigation_item(url: String, class: Option<String>, content: String) -> H
     let onclick = add_mouse_event_override(callback.clone());
     let onkeydown = add_keydown_event_override(callback);
     html! {
-        <a href={url} {class} {onkeydown} {onclick}>{content}</a>
+        <a href={{format!("{}/{}", get_config().base_url.trim_end_matches("/"), url.trim_start_matches("/"))}} {class} {onkeydown} {onclick}>{content}</a>
     }
 }
