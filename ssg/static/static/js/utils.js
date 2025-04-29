@@ -16,6 +16,6 @@ function authorized() {
 
 function go_to_app_if_authorized() {
     if (authorized()) {
-        window.location.href = "/app";
+        window.location.href = "/app/";
     }
 }

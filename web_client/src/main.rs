@@ -72,7 +72,7 @@ fn App() -> Html {
 
 fn main() {
     let (routes, default_routes) = routes!(
-        "" => {
+        "/" => {
             <>
             <h1>{"MAIN PAGE"}</h1>
             </>
