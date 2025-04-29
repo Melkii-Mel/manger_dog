@@ -9,6 +9,7 @@ mod refresh_request;
 mod request;
 mod utils;
 
+use crate::base_components::sidebar_nav_item_content::SidebarNavItemContent;
 use crate::access_handler::get_access;
 use crate::base_components::page::Page;
 use crate::config::{set_config, Config};
@@ -39,9 +40,9 @@ fn App() -> Html {
     html! {
         <>
         <div class="sidebar">
-            <NavigationItemGroup class="sidebar_nav_group" url="/">
-                <NavigationItem url="/home">{"Home"}</NavigationItem>
-                <NavigationItem url="/settings">{"Settings"}</NavigationItem>
+            <NavigationItemGroup class="sidebar-nav-group" url="/">
+                <NavigationItem url="/home"><SidebarNavItemContent src="/static/images/home.svg">{"Home"}</SidebarNavItemContent></NavigationItem>
+                <NavigationItem url="/settings"><SidebarNavItemContent src="/static/images/settings.svg">{"Settings"}</SidebarNavItemContent></NavigationItem>
             </NavigationItemGroup>
         </div>
         <div class="main">
