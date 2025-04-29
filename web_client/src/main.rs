@@ -9,7 +9,6 @@ mod refresh_request;
 mod request;
 mod utils;
 
-use crate::utils::log;
 use crate::access_handler::get_access;
 use crate::base_components::page::Page;
 use crate::config::{set_config, Config};
@@ -44,7 +43,7 @@ fn App() -> Html {
             <NavigationItem url="/settings">{"Settings"}</NavigationItem>
         </NavigationItemGroup>
         <NavigationItemGroup url="/home">
-            <NavigationItem url="/">{"Home"}</NavigationItem>         
+            <NavigationItem url="/">{"Home"}</NavigationItem>
             <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
             <NavigationItem url="/user">{"User"}</NavigationItem>
         </NavigationItemGroup>

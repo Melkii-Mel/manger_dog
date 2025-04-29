@@ -1,8 +1,8 @@
+use crate::bindings::DomInteractionError;
 use crate::refresh_request::{refresh_or_relocate, to_auth, RefreshError};
 use std::collections::HashSet;
 use thiserror::Error;
 use web_sys::window;
-use crate::bindings::DomInteractionError;
 
 // HACK: Hardcoded cookie names
 pub async fn get_access() -> Result<(), AccessError> {
