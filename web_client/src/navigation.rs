@@ -145,7 +145,6 @@ pub fn NavigationItem(NavigationItemProps { children, url }: &NavigationItemProp
     let url = combine_urls(base_url.clone(), url.clone());
     let raw_url = url.clone();
     let get_updated_url = {
-        let base_url = base_url.clone();
         let raw_url = raw_url.clone();
         move || {
             let url = url.clone();
