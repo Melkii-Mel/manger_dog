@@ -38,29 +38,33 @@ fn App() -> Html {
 
     html! {
         <>
-        <NavigationItemGroup url="/">
-            <NavigationItem url="/home">{"Home"}</NavigationItem>
-            <NavigationItem url="/settings">{"Settings"}</NavigationItem>
-        </NavigationItemGroup>
-        <NavigationItemGroup url="/home">
-            <NavigationItem url="/">{"Home"}</NavigationItem>
-            <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
-            <NavigationItem url="/user">{"User"}</NavigationItem>
-        </NavigationItemGroup>
-        <NavigationItemGroup url="/settings">
-            <NavigationItem url="/">{"Settings"}</NavigationItem>
-            <NavigationItem url="/profile">{"Profile"}</NavigationItem>
-            <NavigationItem url="/language">{"Language"}</NavigationItem>
-        </NavigationItemGroup>
-        <h1>{"Hello Worlds"}</h1>
-        <div>
-            <button {onclick}>{ "+1" }</button>
-            <p>{ *counter }</p>
-            <p>{format!("Random stuff: {}", random())}</p>
+        <div class="sidebar">
+            <NavigationItemGroup class="sidebar_nav_group" url="/">
+                <NavigationItem url="/home">{"Home"}</NavigationItem>
+                <NavigationItem url="/settings">{"Settings"}</NavigationItem>
+            </NavigationItemGroup>
         </div>
-        <h1>{"This is the page itself:"}</h1>
-        <div>
-            <Page/>
+        <div class="main">
+            <NavigationItemGroup url="/home">
+                <NavigationItem url="/">{"Home"}</NavigationItem>
+                <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
+                <NavigationItem url="/user">{"User"}</NavigationItem>
+            </NavigationItemGroup>
+            <NavigationItemGroup url="/settings">
+                <NavigationItem url="/">{"Settings"}</NavigationItem>
+                <NavigationItem url="/profile">{"Profile"}</NavigationItem>
+                <NavigationItem url="/language">{"Language"}</NavigationItem>
+            </NavigationItemGroup>
+            <h1>{"Hello Worlds"}</h1>
+            <div>
+                <button {onclick}>{ "+1" }</button>
+                <p>{ *counter }</p>
+                <p>{format!("Random stuff: {}", random())}</p>
+            </div>
+            <h1>{"This is the page itself:"}</h1>
+            <div>
+                <Page/>
+            </div>
         </div>
         </>
     }

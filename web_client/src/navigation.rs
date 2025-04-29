@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use wasm_bindgen::JsValue;
 use web_sys::{window, MouseEvent};
 use yew::{
-    function_component, hook, use_context, use_effect, AttrValue, KeyboardEvent, Properties,
+    function_component, hook, use_context, use_effect, AttrValue, Classes, KeyboardEvent,
+    Properties,
 };
 use yew::{html, Callback, Html};
 use yew::{use_state, ContextProvider};
@@ -92,6 +93,8 @@ pub fn change_url(path: AttrValue) {
 pub struct NavigationItemGroupProps {
     pub url: AttrValue,
     pub children: Html,
+    #[prop_or_default]
+    pub class: Classes,
 }
 #[derive(Clone, Debug, PartialEq)]
 pub struct NavigationGroupUrl {
@@ -124,8 +127,10 @@ pub fn NavigationItemGroup(navigation_item_group_props: &NavigationItemGroupProp
     if (*path).len() < group_url.len() || !(*path).starts_with(&*group_url) {
         return html! {};
     }
+    let mut class = navigation_item_group_props.class.clone();
+    class.push("nav_item_group");
     html! {
-        <div class="nav_item_group">
+        <div class={class}>
             <ContextProvider<NavigationGroupUrl> context={(*ctx).clone()}>
             {navigation_item_group_props.children.clone()}
             </ContextProvider<NavigationGroupUrl>>
@@ -137,10 +142,18 @@ pub fn NavigationItemGroup(navigation_item_group_props: &NavigationItemGroupProp
 pub struct NavigationItemProps {
     pub url: AttrValue,
     pub children: Html,
+    #[prop_or_default]
+    pub class: Classes,
 }
 
 #[function_component]
-pub fn NavigationItem(NavigationItemProps { children, url }: &NavigationItemProps) -> Html {
+pub fn NavigationItem(
+    NavigationItemProps {
+        children,
+        url,
+        class,
+    }: &NavigationItemProps,
+) -> Html {
     let base_url = use_navigation_group_url();
     let url = combine_urls(base_url.clone(), url.clone());
     let raw_url = url.clone();
@@ -180,8 +193,10 @@ pub fn NavigationItem(NavigationItemProps { children, url }: &NavigationItemProp
     }));
     let onclick = add_mouse_event_override(callback.clone());
     let onkeydown = add_keydown_event_override(callback);
+    let mut class = class.clone();
+    class.push("nav_item");
     html! {
-        <a href={{with_base_url((*url).clone())}} {onkeydown} {onclick}>{children.clone()}</a>
+        <a class={class} href={{with_base_url((*url).clone())}} {onkeydown} {onclick}>{children.clone()}</a>
     }
 }
 
