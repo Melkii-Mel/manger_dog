@@ -1,3 +1,4 @@
+use crate::navigation::DefaultRoutes;
 use crate::navigation::Routes;
 use std::cell::OnceCell;
 use std::rc::Rc;
@@ -6,6 +7,7 @@ use std::rc::Rc;
 pub struct Config {
     pub base_url: &'static str,
     pub routes: Routes,
+    pub default_routes: DefaultRoutes,
 }
 
 thread_local! {

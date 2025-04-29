@@ -3,13 +3,13 @@ mod base_components;
 mod base_hooks;
 mod bindings;
 mod config;
-mod navbar;
 mod navigation;
 mod not_found;
 mod refresh_request;
 mod request;
 mod utils;
 
+use crate::utils::log;
 use crate::access_handler::get_access;
 use crate::base_components::page::Page;
 use crate::config::{set_config, Config};
@@ -44,10 +44,12 @@ fn App() -> Html {
             <NavigationItem url="/settings">{"Settings"}</NavigationItem>
         </NavigationItemGroup>
         <NavigationItemGroup url="/home">
+            <NavigationItem url="/">{"Home"}</NavigationItem>         
             <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
             <NavigationItem url="/user">{"User"}</NavigationItem>
         </NavigationItemGroup>
         <NavigationItemGroup url="/settings">
+            <NavigationItem url="/">{"Settings"}</NavigationItem>
             <NavigationItem url="/profile">{"Profile"}</NavigationItem>
             <NavigationItem url="/language">{"Language"}</NavigationItem>
         </NavigationItemGroup>
@@ -66,25 +68,27 @@ fn App() -> Html {
 }
 
 fn main() {
+    let (routes, default_routes) = routes!(
+        "" => {
+            <>
+            <h1>{"MAIN PAGE"}</h1>
+            </>
+        },
+        "/home" => [
+            "/" => {"Welcome Home"},
+            "/user" => {"This is your profile"},
+            "/dashboard" => {"The most essential info out there... would be here"},
+        ],
+        "/settings" => [
+            "/" => {"Welcome to settings"},
+            "/profile" => {"Delete yourself??"},
+            "/language" => {"En/Ru"},
+        ],
+    );
     let config = Config {
         base_url: "/app",
-        routes: routes!(
-            "/" => {
-                <>
-                <h1>{"MAIN PAGE"}</h1>
-                </>
-            },
-            "/home" => {"Welcome Home"},
-            "/home" => [
-                "/user" => {"This is your profile"},
-                "/dashboard" => {"The most essential info out there... would be here"},
-            ],
-            "/settings" => {"Welcome to settings"},
-            "/settings" => [
-                "/profile" => {"Delete yourself??"},
-                "/language" => {"En/Ru"},
-            ],
-        ),
+        routes,
+        default_routes,
     };
     RequestConfig::init(RequestConfig::with_default_messages());
     set_config(config);

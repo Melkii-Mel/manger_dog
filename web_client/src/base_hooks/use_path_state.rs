@@ -1,8 +1,6 @@
 use crate::navigation::URL_CHANGED;
-use crate::utils::get_path;
-use wasm_bindgen::closure::WasmClosureFnOnce;
+use crate::utils::{add_event_listener, get_path};
 use wasm_bindgen::convert::ReturnWasmAbi;
-use web_sys::window;
 use yew::{hook, use_effect, use_state, AttrValue, UseStateHandle};
 
 #[hook]
@@ -23,19 +21,5 @@ where
     T: 'static + FnOnce() -> R,
     R: ReturnWasmAbi + 'static,
 {
-    use_effect(move || {
-        let listener = js_sys::Function::from(callback.into_js_function());
-        window()
-            .unwrap()
-            .add_event_listener_with_callback(URL_CHANGED, &listener)
-            .unwrap();
-
-        || {
-            window()
-                .unwrap()
-                .remove_event_listener_with_callback(URL_CHANGED, &listener)
-                .unwrap();
-            drop(listener)
-        }
-    });
+    use_effect(move || add_event_listener(AttrValue::from(URL_CHANGED), callback));
 }
