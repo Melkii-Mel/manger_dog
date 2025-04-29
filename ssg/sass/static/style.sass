@@ -43,6 +43,10 @@ body[data-theme="light"]
   display: flex
   flex-direction: row
 
+@mixin flex-column
+  display: flex
+  flex-direction: column
+
 @mixin icon-button
   width: 24px
   height: 24px
@@ -63,14 +67,12 @@ body[data-theme="light"]
   border: none
 
 body
-  display: flex
-  flex-direction: column
+  @include flex-column
   height: 100vh
   margin: 0
 
   *
     color: var(--text-color)
-    background: var(--bg-color)
     transition: all 0.2s ease-out
 
   > *
@@ -180,10 +182,6 @@ button, .btn, select
   :hover
     opacity: 0.8
 
-.sign-up-button
-  @include for-small-screen
-    display: none
-
 .burger-menu .sign-up-button
   @include for-small-screen
     display: unset
@@ -245,8 +243,7 @@ body[data-theme="light"]
   bottom: 0
   left: 25%
   right: 0
-  display: flex
-  flex-direction: column
+  @include flex-column
   transform: translateX(100%)
   align-items: end
   padding: 24px 10px
@@ -278,8 +275,7 @@ body[data-theme="light"]
     flex-direction: column-reverse
 
 .hero-left, .hero-right
-  display: flex
-  flex-direction: column
+  @include flex-column
   justify-content: center
 
 .hero-left
@@ -318,19 +314,16 @@ body[data-theme="light"]
     align-self: stretch
 
 .auth-form
-  display: flex
-  flex-direction: column
+  @include flex-column
   gap: 2rem
   padding: 1rem
 
 .form-input-field
-  display: flex
-  flex-direction: column
+  @include flex-column
   gap: 0.5rem
 
 .form-input-label
-  display: flex
-  flex-direction: column
+  @include flex-column
   justify-content: flex-end
   border-radius: 10px
   padding: 0.5rem
@@ -393,3 +386,35 @@ input
 
 .gone
   display: none
+
+.sidebar
+  @include flex-column
+  background: var(--secondary-color)
+  border-color: var(--border-color)
+
+.sidebar-nav-group
+  @include flex-column
+  gap: 0.5rem
+
+body > .sidebar + *
+  @include flex-column
+  flex-grow: 1
+
+body:has(> .sidebar)
+  display: flex
+  flex-direction: row
+
+.nav-item-content
+  @include flex-row
+  align-items: center
+  min-height: 4rem
+  gap: 1rem
+  border: var(--border-color) 1px solid
+  padding: 0.25rem
+  min-width: 20rem
+  border-radius: 5px
+
+  > img
+    @include icon-button
+    color: var(--text-color)
+    border-radius: 0
