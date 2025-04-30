@@ -57,6 +57,7 @@ body[data-theme="light"]
   background-repeat: no-repeat
   background-size: contain
   background-position: center
+  stroke: var(--text-color)
 
 @mixin for-small-screen
   @media screen and (max-width: 768px)
@@ -410,11 +411,21 @@ body:has(> .sidebar)
   min-height: 4rem
   gap: 1rem
   border: var(--border-color) 1px solid
-  padding: 0.25rem
+  padding: 0.25rem 0.25rem 0.25rem 1rem
   min-width: 20rem
   border-radius: 5px
 
-  > img
+  > svg
     @include icon-button
     color: var(--text-color)
     border-radius: 0
+    *
+      @include icon-button
+      color: var(--text-color)
+      border-radius: 0
+
+path.no-stroke
+  stroke: none
+
+svg.fill
+  fill: var(--text-color)
