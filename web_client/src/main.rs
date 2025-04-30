@@ -9,6 +9,7 @@ mod refresh_request;
 mod request;
 mod utils;
 
+use crate::base_components::sidebar::Sidebar;
 use crate::access_handler::get_access;
 use crate::base_components::page::Page;
 use crate::base_components::sidebar_nav_item_content::SidebarNavItemContent;
@@ -38,33 +39,40 @@ fn App() -> Html {
 
     html! {
         <>
-        <div class="sidebar">
+        <Sidebar>
             <NavigationItemGroup class="sidebar-nav-group" url="/">
-                <NavigationItem url="/home"><SidebarNavItemContent src="/static/images/home.svg">{"Home"}</SidebarNavItemContent></NavigationItem>
+                    <NavigationItem url="/home"><SidebarNavItemContent src="/static/images/home.svg">{"Home"}</SidebarNavItemContent></NavigationItem>
+                <div class="spacer"/>
                 <NavigationItem url="/settings"><SidebarNavItemContent src="/static/images/settings.svg">{"Settings"}</SidebarNavItemContent></NavigationItem>
             </NavigationItemGroup>
-        </div>
-        <div class="main">
-            <NavigationItemGroup url="/home">
-                <NavigationItem url="/">{"Home"}</NavigationItem>
-                <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
-                <NavigationItem url="/user">{"User"}</NavigationItem>
-            </NavigationItemGroup>
-            <NavigationItemGroup url="/settings">
-                <NavigationItem url="/">{"Settings"}</NavigationItem>
-                <NavigationItem url="/profile">{"Profile"}</NavigationItem>
-                <NavigationItem url="/language">{"Language"}</NavigationItem>
-            </NavigationItemGroup>
-            <h1>{"Hello Worlds"}</h1>
-            <div>
-                <button {onclick}>{ "+1" }</button>
-                <p>{ *counter }</p>
-                <p>{format!("Random stuff: {}", random())}</p>
+        </Sidebar>
+        <div>
+            <div class="top-bar">
+                <div class="top-bar-navigation">
+                    <NavigationItemGroup url="/home">
+                        <NavigationItem url="/">{"Home"}</NavigationItem>
+                        <NavigationItem url="/dashboard">{"Dashboard"}</NavigationItem>
+                        <NavigationItem url="/user">{"User"}</NavigationItem>
+                    </NavigationItemGroup>
+                    <NavigationItemGroup url="/settings">
+                        <NavigationItem url="/">{"Settings"}</NavigationItem>
+                        <NavigationItem url="/profile">{"Profile"}</NavigationItem>
+                        <NavigationItem url="/language">{"Language"}</NavigationItem>
+                    </NavigationItemGroup>
+                </div>
             </div>
-            <h1>{"This is the page itself:"}</h1>
-            <div>
-                <Page/>
-            </div>
+            <main class="app-main">
+                <h1>{"Hello Worlds"}</h1>
+                <div>
+                    <button {onclick}>{ "+1" }</button>
+                    <p>{ *counter }</p>
+                    <p>{format!("Random stuff: {}", random())}</p>
+                </div>
+                <h1>{"This is the page itself:"}</h1>
+                <div>
+                    <Page/>
+                </div>
+            </main>
         </div>
         </>
     }
