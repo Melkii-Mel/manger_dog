@@ -20,6 +20,13 @@ pub fn log(str: &str) {
     web_sys::console::log_1(&JsValue::from_str(str));
 }
 
+#[macro_export]
+macro_rules! log {
+    ($($arg:tt)*) => {
+        crate::utils::log(&format!($($arg)*))
+    };
+}
+
 pub fn get_local_storage() -> Storage {
     window()
         .expect("no global `window` exists")

@@ -9,14 +9,13 @@ mod refresh_request;
 mod request;
 mod utils;
 
-use crate::base_components::sidebar_nav_item_content::SidebarNavItemContent;
 use crate::access_handler::get_access;
 use crate::base_components::page::Page;
+use crate::base_components::sidebar_nav_item_content::SidebarNavItemContent;
 use crate::config::{set_config, Config};
 use crate::navigation::NavigationItem;
 use crate::navigation::NavigationItemGroup;
-use crate::request::Method::POST;
-use crate::request::{request, RequestConfig};
+use crate::request::{Request, RequestConfig};
 use web_sys::js_sys::Math::random;
 use yew::platform::spawn_local;
 use yew::prelude::*;
@@ -31,7 +30,7 @@ fn App() -> Html {
         let counter = counter.clone();
         move |_| {
             let counter = counter.clone();
-            request(POST, "/increment", *counter, move |res| {
+            Request::post("/increment", Some(*counter), move |res| {
                 counter.set(res);
             })
         }
