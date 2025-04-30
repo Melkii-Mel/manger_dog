@@ -80,14 +80,12 @@ impl Request {
     {
         let url = url.to_string();
         spawn_local(async move {
-            RequestBuilder::new(&url, GET)
-                .finish()
-                .await
-                .map(async |response| {
-                    if let Some(json) = read_json::<T>(response).await {
-                        callback(json);
-                    }
-                });
+            let response = RequestBuilder::new(&url, GET).finish().await;
+            if let Some(response) = response {
+                if let Some(json) = read_json::<T>(response).await {
+                    callback(json);
+                }
+            }
         })
     }
     pub fn get_body<F>(url: &str, callback: F)
@@ -96,14 +94,12 @@ impl Request {
     {
         let url = url.to_string();
         spawn_local(async move {
-            RequestBuilder::new(&url, GET)
-                .finish()
-                .await
-                .map(async |response| {
-                    if let Some(json) = read_body(response).await {
-                        callback(json);
-                    }
-                });
+            let response = RequestBuilder::new(&url, GET).finish().await;
+            if let Some(response) = response {
+                if let Some(body) = read_body(response).await {
+                    callback(body);
+                }
+            }
         })
     }
 
@@ -118,9 +114,7 @@ impl Request {
         F: Fn(T) + 'static,
         T: DeserializeOwned + Debug,
     {
-        let response = RequestBuilder::new(&url, method)
-            .json(value)
-            .await;
+        let response = RequestBuilder::new(&url, method).json(value).await;
         if let Some(response) = response {
             if let Some(json) = read_json(response).await {
                 callback(json);
@@ -166,7 +160,9 @@ impl RequestBuilder {
         )?)
     }
     async fn json(self, json: impl Serialize) -> Option<Response> {
-        let serialized = serde_json::to_string(&json).inspect_err(|e| log!("Failed to set the Json: {e}")).ok()?;
+        let serialized = serde_json::to_string(&json)
+            .inspect_err(|e| log!("Failed to set the Json: {e}"))
+            .ok()?;
         if let Some(message) = get_request_config().request_data_message {
             log!("{message}{}", &serialized)
         }
