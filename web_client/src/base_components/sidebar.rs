@@ -1,4 +1,3 @@
-use crate::log;
 use crate::MouseEvent;
 use wasm_bindgen::JsCast;
 use web_sys::Element;

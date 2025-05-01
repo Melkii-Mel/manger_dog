@@ -9,6 +9,10 @@ DEFINE FIELD registration_date ON TABLE users TYPE datetime DEFAULT time::now();
 DEFINE FIELD selected_preference ON TABLE users TYPE option<record<preferences>>;
 DEFINE INDEX email_idx ON TABLE users COLUMNS email UNIQUE;
 
+DEFINE TABLE friends SCHEMAFULL;
+DEFINE FIELD user_id ON TABLE friends TYPE string;
+DEFINE FIELD friend_id ON TABLE friends TYPE string;
+
 DEFINE TABLE accounts SCHEMAFULL;
 DEFINE FIELD title ON TABLE accounts TYPE string;
 DEFINE FIELD user_id ON TABLE accounts TYPE option<record<users>>;
@@ -68,7 +72,7 @@ DEFINE FIELD user_id ON TABLE stable_incomes TYPE record<users>;
 DEFINE FIELD currency_id ON TABLE stable_incomes TYPE record<currencies>;
 DEFINE FIELD amount_per_month ON TABLE stable_incomes TYPE number;
 DEFINE FIELD start_date ON TABLE stable_incomes TYPE datetime;
-DEFINE FIELD end_date ON TABLE stable_incomes TYPE datetime;
+DEFINE FIELD end_date ON TABLE stable_incomes TYPE option<datetime>;
 DEFINE FIELD last_update_date ON TABLE stable_incomes TYPE datetime;
 DEFINE FIELD metadata_id ON TABLE stable_incomes TYPE record<metadata>;
 
@@ -110,8 +114,8 @@ DEFINE FIELD type ON TABLE investments TYPE record<investment_types>;
 DEFINE FIELD compounding_frequency ON TABLE investments TYPE record<compounding_frequencies>;
 DEFINE FIELD principal_amount ON TABLE investments TYPE number;
 DEFINE FIELD start_date ON TABLE investments TYPE datetime;
-DEFINE FIELD expected_end_date ON TABLE investments TYPE datetime;
-DEFINE FIELD end_date ON TABLE investments TYPE datetime;
+DEFINE FIELD expected_end_date ON TABLE investments TYPE option<datetime>;
+DEFINE FIELD end_date ON TABLE investments TYPE option<datetime>;
 DEFINE FIELD risk_level ON TABLE investments TYPE record<risk_levels>;
 DEFINE FIELD expected_return ON TABLE investments TYPE number;
 DEFINE FIELD metadata_id ON TABLE investments TYPE record<metadata>;
@@ -126,14 +130,12 @@ INSERT INTO interest_rate_types (identifier) VALUES ('low'), ('moderate'), ('hig
 
 DEFINE TABLE investment_returns SCHEMAFULL;
 DEFINE FIELD investment_id ON TABLE investment_returns TYPE record<investments>;
-DEFINE FIELD account_id ON TABLE investment_returns TYPE record<investments>;
-DEFINE FIELD date ON TABLE investment_returns TYPE datetime;
-DEFINE FIELD amount ON TABLE investment_returns TYPE number;
-DEFINE FIELD metadata_id ON TABLE investment_returns TYPE record<metadata>;
+DEFINE FIELD transaction_id ON TABLE investment_returns TYPE record<transactions>;
 
 DEFINE TABLE metadata SCHEMAFULL;
-DEFINE FIELD title ON TABLE metadata TYPE string;
-DEFINE FIELD description ON TABLE metadata TYPE string;
+DEFINE FIELD title ON TABLE metadata TYPE option<string>;
+DEFINE FIELD description ON TABLE metadata TYPE option<string>;
+DEFINE FIELD user_id ON TABLE metadata TYPE record<users>;
 
 DEFINE TABLE metadata_tags SCHEMAFULL;
 DEFINE FIELD metadata_id ON TABLE metadata_tags TYPE record<metadata>;
@@ -142,6 +144,7 @@ DEFINE FIELD exception ON TABLE metadata_tags TYPE bool;
 DEFINE INDEX metadata_tag_exception_idx ON TABLE metadata_tags COLUMNS exception;
 
 DEFINE TABLE tag_groups SCHEMAFULL;
+DEFINE FIELD user_id ON TABLE tag_groups TYPE record<users>;
 DEFINE FIELD metadata_id ON TABLE tag_groups TYPE option<record<metadata>>;
 
 DEFINE TABLE tag_group_tags SCHEMAFULL;
@@ -155,7 +158,7 @@ DEFINE FIELD tag_group_id ON TABLE metadata_tag_groups TYPE record<tag_groups>;
 DEFINE TABLE currencies SCHEMAFULL;
 DEFINE FIELD identifier ON TABLE currencies TYPE string;
 DEFINE INDEX identifier_idx ON TABLE currencies COLUMNS identifier UNIQUE;
-INSERT INTO currencies (identifier) VALUES ("USD"), ("EUR"), ("GBP"), ("JPY"), ("AUD"), ("CAD"), ("CHF"), ("CNY"), ("INR"), ("BRL"), ("BTC"), ("ETH"), ("USDT"), ("USDC"), ("RUB");
+INSERT INTO currencies (id, identifier) VALUES (currencies:usd, "USD"), (currencies:eur, "EUR"), (currencies:gbp, "GBP"), (currencies:jpy, "JPY"), (currencies:aud, "AUD"), (currencies:cad, "CAD"), (currencies:chf, "CHF"), (currencies:cny, "CNY"), (currencies:inr, "INR"), (currencies:brl, "BRL"), (currencies:btc, "BTC"), (currencies:eth, "ETH"), (currencies:usdt, "USDT"), (currencies:usdc, "USDC"), (currencies:rub, "RUB");
 
 DEFINE TABLE preferences SCHEMAFULL;
 DEFINE FIELD user_id ON TABLE preferences TYPE record<users>;
@@ -214,10 +217,10 @@ DEFINE INDEX expiration_date_idx ON TABLE sessions COLUMNS expiration_date;
 -- TODO: color palettes
 -- TODO: color palettes in preferences
 -- TODO: custom color palettes (same table as color palettes, but with no owner)
--- TODO: keymapping
 
-DEFINE TABLE financial_goals_investments SCHEMAFULL;
-DEFINE FIELD financial_goal_id ON TABLE financial_goals_investments TYPE record<financial_goals>;
-DEFINE FIELD date ON TABLE financial_goals_investments TYPE datetime;
-DEFINE FIELD amount ON TABLE financial_goals_investments TYPE number;
-DEFINE FIELD metadata_id ON TABLE financial_goals_investments TYPE record<metadata>;
+DEFINE TABLE financial_goal_allocations SCHEMAFULL;
+DEFINE FIELD financial_goal_id ON TABLE goal_allocations TYPE record<financial_goals>;
+DEFINE FIELD account_id ON TABLE goal_allocations TYPE option<record<accounts>>;
+DEFINE FIELD date ON TABLE goal_allocations TYPE datetime;
+DEFINE FIELD amount ON TABLE goal_allocations TYPE number;
+DEFINE FIELD metadata_id ON TABLE goal_allocations TYPE record<metadata>;
