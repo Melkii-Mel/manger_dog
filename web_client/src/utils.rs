@@ -6,14 +6,19 @@ use web_sys::{window, CustomEvent, Storage};
 use yew::AttrValue;
 
 pub fn get_path() -> AttrValue {
-    let path = window()
+    AttrValue::from(path()[get_config().base_url.len()..].to_string())
+}
+
+pub fn get_path_with_base() -> AttrValue {
+    AttrValue::from(path())
+}
+
+fn path() -> String {
+    window()
         .expect("failed to get window while trying to get path")
         .location()
         .pathname()
         .expect("failed to get location pathname while trying to get path")
-        [get_config().base_url.len()..]
-        .to_string();
-    AttrValue::from(path)
 }
 
 pub fn log(str: &str) {
@@ -71,4 +76,21 @@ pub fn add_event_listener<T: 'static + FnOnce() -> R, R: ReturnWasmAbi + 'static
                 type_
             ));
     })
+}
+
+#[macro_export]
+macro_rules! component {
+    ($( Props { $( $prop:ident:$ty:ty ),*$(,)? } )? Body$(($props:ident))? $body:expr) => {
+        $(
+        #[derive(::yew::Properties, PartialEq)]
+        pub struct Props {
+            $( pub $prop: $ty ,)*
+        }
+        )?
+
+        #[::yew::function_component]
+        fn TopBar($($props: &Props)?) -> ::yew::Html {
+            $body
+        }
+    };
 }

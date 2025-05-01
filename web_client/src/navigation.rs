@@ -128,7 +128,7 @@ pub fn NavigationItemGroup(navigation_item_group_props: &NavigationItemGroupProp
         return html! {};
     }
     let mut class = navigation_item_group_props.class.clone();
-    class.push("nav_item_group");
+    class.push("nav-item-group");
     html! {
         <div class={class}>
             <ContextProvider<NavigationGroupUrl> context={(*ctx).clone()}>
@@ -157,7 +157,7 @@ pub fn NavigationItem(
     let base_url = use_navigation_group_url();
     let url = combine_urls(base_url.clone(), url.clone());
     let raw_url = url.clone();
-    let get_updated_url = {
+    let get_url_with_state = {
         let raw_url = raw_url.clone();
         move || {
             let url = url.clone();
@@ -174,14 +174,14 @@ pub fn NavigationItem(
             new_url
         }
     };
-    let url = use_state(get_updated_url.clone());
+    let url = use_state(get_url_with_state.clone());
     use_effect({
         let raw_url = raw_url.clone();
         let url = url.clone();
         let type_ = AttrValue::from(format!("{}{}", LOCAL_STORAGE_VALUE_SET, &raw_url));
         move || {
             add_event_listener(type_.clone(), move || {
-                let updated_url = get_updated_url();
+                let updated_url = get_url_with_state();
                 url.set(updated_url);
             })
         }
@@ -194,9 +194,15 @@ pub fn NavigationItem(
     let onclick = add_mouse_event_override(callback.clone());
     let onkeydown = add_keydown_event_override(callback);
     let mut class = class.clone();
-    class.push("nav_item");
+    class.push("nav-item");
+    let url = with_base_url((*url).clone());
+    let current_path = use_path_state();
+    let selected = format!("{}{}", get_config().base_url, *current_path) == url;
+    if selected {
+        class.push("selected");
+    }
     html! {
-        <a class={class} href={{with_base_url((*url).clone())}} {onkeydown} {onclick}>{children.clone()}</a>
+        <a class={class} href={url} {onkeydown} {onclick}>{children.clone()}</a>
     }
 }
 

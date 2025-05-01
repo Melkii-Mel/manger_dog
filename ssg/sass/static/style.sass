@@ -419,6 +419,7 @@ body:has(> .sidebar)
     @include icon-button
     color: var(--text-color)
     border-radius: 0
+
     *
       @include icon-button
       color: var(--text-color)
@@ -435,3 +436,28 @@ svg.fill
 
 .spacer
   flex-grow: 1
+
+.top-bar
+  @include flex-row
+
+.top-bar-navigation
+  flex-grow: 1
+
+  .nav-item-group
+    @include flex-row
+    flex-grow: 1
+    padding: 1rem
+    gap: 1rem
+    background: var(--secondary-color)
+    border-radius: 10px 10px 0 0
+
+  .nav-item
+    font-size: 1.5rem
+    background-color: var(--primary-color)
+    color: var(--text-color-inverse)
+    padding: 1rem 1rem 0.25rem
+    border-radius: 5px 5px 2px 2px
+
+.nav-item.selected
+  pointer-events: none
+  opacity: 0.5
