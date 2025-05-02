@@ -1,6 +1,6 @@
-use crate::request::Request;
+use crate::hooks::use_file::use_file;
 use yew::function_component;
-use yew::{html, use_state, AttrValue, Html, Properties};
+use yew::{html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
@@ -10,15 +10,7 @@ pub struct Props {
 
 #[function_component]
 pub fn SidebarNavItemContent(props: &Props) -> Html {
-    let svg = use_state(|| AttrValue::from(""));
-    if *svg == "" {
-        Request::get_body(props.src, {
-            let svg = svg.clone();
-            move |result: String| {
-                svg.set(AttrValue::from(result))
-            }
-        });
-    }
+    let svg = use_file(props.src);
     html! {
         <div class="nav-item-content btn">
             {Html::from_html_unchecked((*svg).clone())}
