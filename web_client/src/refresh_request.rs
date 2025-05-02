@@ -1,5 +1,5 @@
 use crate::bindings::{set_location_href, DomInteractionError};
-use actix_surreal_types::ClientResult;
+use actix_surreal_types::ClientUnitResult;
 use futures::future::LocalBoxFuture;
 use futures::future::Shared;
 use futures::FutureExt;
@@ -42,7 +42,7 @@ pub fn refresh_or_relocate() -> Shared<LocalBoxFuture<'static, Result<(), Refres
                         .credentials(RequestCredentials::Include)
                         .send()
                         .await?
-                        .json::<ClientResult>()
+                        .json::<ClientUnitResult>()
                         .await?
                         .inspect_err(|_| to_auth().unwrap() /* Hack: unwrap */)
                         .ok();
