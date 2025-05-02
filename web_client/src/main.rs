@@ -128,6 +128,7 @@ fn main() {
             default_routes,
             translations_string,
             default_language: "ru".to_string(),
+            authorized_locations: &["/api/"],
         };
         set_config(config);
         RequestConfig::init(RequestConfig::with_default_messages());

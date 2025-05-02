@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use crate::access_handler::get_access;
+use crate::config::get_config;
 use crate::log;
 use crate::request::Method::{DELETE, GET, PATCH, POST, PUT};
 use crate::utils::log;
@@ -57,7 +59,12 @@ macro_rules! generic_method {
             T: DeserializeOwned + Debug,
         {
             let $url_ident = url.to_string();
-            spawn_local(async move { $body })
+            spawn_local(async move {
+                if (get_config().authorized_locations.iter().any(|location| $url_ident.starts_with(location))) {
+                    get_access().await.unwrap();
+                }
+                $body
+            })
         }
     };
 }
@@ -80,6 +87,13 @@ impl Request {
     {
         let url = url.to_string();
         spawn_local(async move {
+            if get_config()
+                .authorized_locations
+                .iter()
+                .any(|location| url.starts_with(location))
+            {
+                get_access().await.unwrap();
+            }
             let response = RequestBuilder::new(&url, GET).finish().await;
             if let Some(response) = response {
                 if let Some(json) = read_json::<T>(response).await {
@@ -94,6 +108,13 @@ impl Request {
     {
         let url = url.to_string();
         spawn_local(async move {
+            if get_config()
+                .authorized_locations
+                .iter()
+                .any(|location| url.starts_with(location))
+            {
+                get_access().await.unwrap();
+            }
             if let Some(body) = Self::get_body_async(&url).await {
                 callback(body);
             }
@@ -102,6 +123,13 @@ impl Request {
 
     pub async fn get_body_async(url: &str) -> Option<String> {
         let url = url.to_string();
+        if get_config()
+            .authorized_locations
+            .iter()
+            .any(|location| url.starts_with(location))
+        {
+            get_access().await.unwrap();
+        }
         let response = RequestBuilder::new(&url, GET).finish().await;
         Some(read_body(response?).await?)
     }

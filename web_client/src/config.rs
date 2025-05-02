@@ -10,6 +10,7 @@ pub struct Config {
     pub default_routes: DefaultRoutes,
     pub translations_string: String,
     pub default_language: String,
+    pub authorized_locations: &'static [&'static str],
 }
 
 thread_local! {
