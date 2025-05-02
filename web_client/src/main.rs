@@ -1,6 +1,6 @@
 mod access_handler;
-mod base_components;
-mod base_hooks;
+mod components;
+mod hooks;
 mod bindings;
 mod config;
 mod i18n;
@@ -11,10 +11,10 @@ mod request;
 mod utils;
 
 use crate::access_handler::get_access;
-use crate::base_components::page::Page;
-use crate::base_components::sidebar::Sidebar;
-use crate::base_components::sidebar_nav_item_content::SidebarNavItemContent;
-use crate::base_hooks::use_translation::use_t;
+use crate::components::page::Page;
+use crate::components::sidebar::Sidebar;
+use crate::components::sidebar_nav_item_content::SidebarNavItemContent;
+use crate::hooks::use_translation::use_t;
 use crate::config::{get_config, set_config, Config};
 use crate::i18n::translation_config;
 use crate::navigation::NavigationItem;

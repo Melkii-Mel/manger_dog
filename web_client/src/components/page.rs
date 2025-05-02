@@ -1,4 +1,4 @@
-use crate::base_hooks::use_path_state;
+use crate::hooks::use_path_state;
 use crate::config::get_config;
 use crate::not_found::not_found;
 use yew::{function_component, Html};

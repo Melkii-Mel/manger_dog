@@ -1,4 +1,4 @@
-use crate::base_hooks::{use_path_state, use_url_changed_event_listener};
+use crate::hooks::{use_path_state, use_url_changed_event_listener};
 use crate::config::get_config;
 use crate::utils::{add_event_listener, dispatch_signal};
 use crate::utils::{get_local_storage, get_path};
