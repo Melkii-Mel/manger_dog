@@ -8,6 +8,8 @@ pub struct Config {
     pub base_url: &'static str,
     pub routes: Routes,
     pub default_routes: DefaultRoutes,
+    pub translations_string: String,
+    pub default_language: String,
 }
 
 thread_local! {

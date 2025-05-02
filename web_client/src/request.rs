@@ -94,13 +94,16 @@ impl Request {
     {
         let url = url.to_string();
         spawn_local(async move {
-            let response = RequestBuilder::new(&url, GET).finish().await;
-            if let Some(response) = response {
-                if let Some(body) = read_body(response).await {
-                    callback(body);
-                }
+            if let Some(body) = Self::get_body_async(&url).await {
+                callback(body);
             }
         })
+    }
+
+    pub async fn get_body_async(url: &str) -> Option<String> {
+        let url = url.to_string();
+        let response = RequestBuilder::new(&url, GET).finish().await;
+        Some(read_body(response?).await?)
     }
 
     method!(post(POST));

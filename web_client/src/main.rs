@@ -3,26 +3,43 @@ mod base_components;
 mod base_hooks;
 mod bindings;
 mod config;
+mod i18n;
 mod navigation;
 mod not_found;
 mod refresh_request;
 mod request;
 mod utils;
 
-use crate::base_components::sidebar::Sidebar;
 use crate::access_handler::get_access;
 use crate::base_components::page::Page;
+use crate::base_components::sidebar::Sidebar;
 use crate::base_components::sidebar_nav_item_content::SidebarNavItemContent;
-use crate::config::{set_config, Config};
+use crate::base_hooks::use_translation::use_t;
+use crate::config::{get_config, set_config, Config};
+use crate::i18n::translation_config;
 use crate::navigation::NavigationItem;
 use crate::navigation::NavigationItemGroup;
 use crate::request::{Request, RequestConfig};
+use i18nrs::yew::I18nProvider;
 use web_sys::js_sys::Math::random;
 use yew::platform::spawn_local;
 use yew::prelude::*;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+#[function_component]
+fn AppWithConfig() -> Html {
+    let config = get_config();
+
+    let translation_config =
+        translation_config(&config.translations_string, &config.default_language);
+    html!(
+        <I18nProvider ..translation_config>
+            <App/>
+        </I18nProvider>
+    )
+}
 
 #[function_component]
 fn App() -> Html {
@@ -37,13 +54,15 @@ fn App() -> Html {
         }
     };
 
+    let t = use_t();
+
     html! {
         <>
         <Sidebar>
             <NavigationItemGroup class="sidebar-nav-group" url="/">
-                    <NavigationItem url="/home"><SidebarNavItemContent src="/static/images/home.svg">{"Home"}</SidebarNavItemContent></NavigationItem>
+                    <NavigationItem url="/home"><SidebarNavItemContent src="/static/images/home.svg">{t("home")}</SidebarNavItemContent></NavigationItem>
                 <div class="spacer"/>
-                <NavigationItem url="/settings"><SidebarNavItemContent src="/static/images/settings.svg">{"Settings"}</SidebarNavItemContent></NavigationItem>
+                <NavigationItem url="/settings"><SidebarNavItemContent src="/static/images/settings.svg">{t("settings")}</SidebarNavItemContent></NavigationItem>
             </NavigationItemGroup>
         </Sidebar>
         <div>
@@ -79,32 +98,39 @@ fn App() -> Html {
 }
 
 fn main() {
-    let (routes, default_routes) = routes!(
-        "/" => {
-            <>
-            <h1>{"MAIN PAGE"}</h1>
-            </>
-        },
-        "/home" => [
-            "/" => {"Welcome Home"},
-            "/user" => {"This is your profile"},
-            "/dashboard" => {"The most essential info out there... would be here"},
-        ],
-        "/settings" => [
-            "/" => {"Welcome to settings"},
-            "/profile" => {"Delete yourself??"},
-            "/language" => {"En/Ru"},
-        ],
-    );
-    let config = Config {
-        base_url: "/app",
-        routes,
-        default_routes,
-    };
-    RequestConfig::init(RequestConfig::with_default_messages());
-    set_config(config);
     spawn_local(async {
         get_access().await.unwrap();
     });
-    yew::Renderer::<App>::new().render();
+    spawn_local(async {
+        let (routes, default_routes) = routes!(
+            "/" => {
+                <>
+                <h1>{"MAIN PAGE"}</h1>
+                </>
+            },
+            "/home" => [
+                "/" => {"Welcome Home"},
+                "/user" => {"This is your profile"},
+                "/dashboard" => {"The most essential info out there... would be here"},
+            ],
+            "/settings" => [
+                "/" => {"Welcome to settings"},
+                "/profile" => {"Delete yourself??"},
+                "/language" => {"En/Ru"},
+            ],
+        );
+        let translations_string = Request::get_body_async("/static/translations.json")
+            .await
+            .unwrap();
+        let config = Config {
+            base_url: "/app",
+            routes,
+            default_routes,
+            translations_string,
+            default_language: "ru".to_string(),
+        };
+        set_config(config);
+        RequestConfig::init(RequestConfig::with_default_messages());
+        yew::Renderer::<AppWithConfig>::new().render();
+    });
 }

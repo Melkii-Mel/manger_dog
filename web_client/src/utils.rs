@@ -3,7 +3,7 @@ use wasm_bindgen::closure::WasmClosureFnOnce;
 use wasm_bindgen::convert::ReturnWasmAbi;
 use wasm_bindgen::JsValue;
 use web_sys::{window, CustomEvent, Storage};
-use yew::AttrValue;
+use yew::{hook, AttrValue};
 
 pub fn get_path() -> AttrValue {
     AttrValue::from(path()[get_config().base_url.len()..].to_string())
