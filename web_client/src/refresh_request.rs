@@ -1,19 +1,20 @@
 use crate::bindings::{set_location_href, DomInteractionError};
-use actix_surreal_types::ClientResult;
-use derive_more::Display;
+use actix_surreal_types::ClientUnitResult;
 use futures::future::LocalBoxFuture;
 use futures::future::Shared;
 use futures::FutureExt;
 use gloo_net::http::Request;
-use gloo_net::Error;
 use std::cell::{OnceCell, RefCell};
 use std::rc::Rc;
+use derive_more::Display;
+use gloo_net::Error;
 use thiserror::Error;
-use web_sys::RequestCredentials;
+use web_sys::{RequestCredentials};
 
 #[derive(Debug, Error, Clone, Display)]
 pub enum RefreshError {
     GlooNet(String),
+    
 }
 
 impl From<gloo_net::Error> for RefreshError {
@@ -41,7 +42,7 @@ pub fn refresh_or_relocate() -> Shared<LocalBoxFuture<'static, Result<(), Refres
                         .credentials(RequestCredentials::Include)
                         .send()
                         .await?
-                        .json::<ClientResult>()
+                        .json::<ClientUnitResult>()
                         .await?
                         .inspect_err(|_| to_auth().unwrap() /* Hack: unwrap */)
                         .ok();
@@ -59,5 +60,5 @@ pub fn refresh_or_relocate() -> Shared<LocalBoxFuture<'static, Result<(), Refres
 
 pub fn to_auth() -> Result<(), DomInteractionError> {
     // TODO: Do something about the language. Perhaps should save preferred language in the settings and then load it or something
-    set_location_href("/auth?mode=sign_in") // HACK: Hardcoded value
+    set_location_href("/auth") // HACK: Hardcoded value
 }

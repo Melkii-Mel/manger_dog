@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Debug, Display, Formatter};
+use serde::de::DeserializeOwned;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Error {
@@ -41,5 +42,6 @@ impl From<ClientError> for Error {
         Error::Client(value)
     }
 }
-
-pub type ClientResult = Result<(), ClientError>;
+#[allow(type_alias_bounds)]
+pub type ClientResult<T: Serialize + DeserializeOwned + Debug> = Result<T, ClientError>;
+pub type ClientUnitResult = ClientResult<()>;
