@@ -5,12 +5,14 @@ use crate::config::get_config;
 use crate::log;
 use crate::request::Method::{DELETE, GET, PATCH, POST, PUT};
 use crate::utils::log;
+use actix_surreal_types::ClientResult;
 use gloo_net::http::Response;
 use gloo_net::{http, Error};
 use once_cell::unsync::OnceCell;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::future::Future;
 use std::rc::Rc;
 use wasm_bindgen::JsValue;
 use yew::platform::spawn_local;
@@ -20,6 +22,7 @@ pub struct RequestConfig {
     pub request_data_message: Option<&'static str>,
     pub json_response_data_message: Option<&'static str>,
     pub body_response_data_message: Option<&'static str>,
+    pub client_error_data_message: Option<&'static str>,
 }
 
 impl RequestConfig {
@@ -31,11 +34,13 @@ impl RequestConfig {
             request_data_message: Some("Sending request with data: "),
             json_response_data_message: Some("Received json response: "),
             body_response_data_message: Some("Received body: "),
+            client_error_data_message: Some("Client error: "),
         }
     }
 }
 
 #[allow(dead_code)]
+#[derive(Debug, Clone, Copy)]
 pub enum Method {
     GET,
     POST,
@@ -85,20 +90,17 @@ impl Request {
         F: Fn(T) + 'static,
         T: DeserializeOwned + Debug,
     {
-        let url = url.to_string();
+        let url = Rc::new(url.to_string());
+        let requester = {
+            let url = url.clone();
+            move || RequestBuilder::new(&url, GET).finish()
+        };
         spawn_local(async move {
-            if get_config()
-                .authorized_locations
-                .iter()
-                .any(|location| url.starts_with(location))
-            {
-                get_access().await.unwrap();
-            }
-            let response = RequestBuilder::new(&url, GET).finish().await;
+            let response =
+                Self::_generic_request_with_client_result_response::<_, _, T>(&url, requester)
+                    .await;
             if let Some(response) = response {
-                if let Some(json) = read_json::<T>(response).await {
-                    callback(json);
-                }
+                callback(response);
             }
         })
     }
@@ -123,13 +125,6 @@ impl Request {
 
     pub async fn get_body_async(url: &str) -> Option<String> {
         let url = url.to_string();
-        if get_config()
-            .authorized_locations
-            .iter()
-            .any(|location| url.starts_with(location))
-        {
-            get_access().await.unwrap();
-        }
         let response = RequestBuilder::new(&url, GET).finish().await;
         Some(read_body(response?).await?)
     }
@@ -145,11 +140,55 @@ impl Request {
         F: Fn(T) + 'static,
         T: DeserializeOwned + Debug,
     {
-        let response = RequestBuilder::new(&url, method).json(value).await;
-        if let Some(response) = response {
-            if let Some(json) = read_json(response).await {
-                callback(json);
+        let value = Rc::new(value);
+        let url = Rc::new(url);
+        let requester = {
+            let url = url.clone();
+            move || RequestBuilder::new(&url, method.clone()).json(value.clone())
+        };
+        if let Some(response) =
+            Self::_generic_request_with_client_result_response::<_, _, T>(&url, requester).await
+        {
+            callback(response);
+        }
+    }
+
+    async fn _generic_request_with_client_result_response<F, R, T>(
+        url: &str,
+        requester: F,
+    ) -> Option<T>
+    where
+        F: Fn() -> R + 'static,
+        R: Future<Output = Option<Response>> + Sized,
+        T: DeserializeOwned + Debug,
+    {
+        for _ in 0..2 {
+            Self::get_access_if_required(url).await;
+            if let Some(response) = requester().await {
+                if let Some(client_result) = read_json::<ClientResult<T>>(response).await {
+                    match client_result {
+                        Ok(value) => {
+                            return Some(value);
+                        }
+                        Err(e) => {
+                            if let Some(message) = get_request_config().client_error_data_message {
+                                log!("{}{:?}", message, e)
+                            }
+                        }
+                    }
+                }
             }
+        }
+        None
+    }
+
+    async fn get_access_if_required(url: &str) {
+        if get_config()
+            .authorized_locations
+            .iter()
+            .any(|location| url.starts_with(location))
+        {
+            get_access().await.unwrap();
         }
     }
 }
