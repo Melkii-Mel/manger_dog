@@ -8,6 +8,9 @@ actix-web = { version = "4.10.2", optional = true }
 serde = { version = "1.0.219", features = ["serde_derive"] }
 proc_macros = { path = "proc_macros" }
 surrealdb = { version = "2.2.2", optional = true }
+regex = "1.11.1"
+actix-surreal-starter-macros = { path = "../actix-surreal-starter-macros" }
+thiserror = "2.0.12"
 
 [features]
 default = []

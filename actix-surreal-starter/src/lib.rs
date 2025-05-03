@@ -10,7 +10,6 @@ mod server_address;
 mod server_starter;
 pub mod crud_ops;
 pub mod api;
-pub mod pre_built;
 pub mod query_builder;
 pub mod static_files;
 

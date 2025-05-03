@@ -3,6 +3,7 @@ mod error;
 #[cfg(feature = "actix-surreal-impl")]
 mod implementations;
 mod entity;
+pub mod pre_built;
 
 pub use error::*;
 pub use entity::*;

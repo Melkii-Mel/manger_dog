@@ -1,4 +1,4 @@
-use actix_surreal_starter::pre_built::validators::*;
+use actix_surreal_starter_types::pre_built::validators::*;
 use actix_surreal_starter_macros::{api_entities, impl_display_for_error};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
