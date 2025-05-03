@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::RecordId;
 use thiserror::Error;
+#[cfg(feature = "actix-surreal-starter")]
 use actix_surreal_starter::LoginData;
 
 #[derive(Debug, Error, Serialize, Deserialize, Clone)]
@@ -209,6 +210,7 @@ api_entities!(
     }
 );
 
+#[cfg(feature = "actix-surreal-starter")]
 impl LoginData for Register {
     fn get_password_mut(&mut self) -> &mut String {
         &mut self.password
@@ -223,6 +225,7 @@ impl LoginData for Register {
     }
 }
 
+#[cfg(feature = "actix-surreal-starter")]
 impl LoginData for Creds {
     fn get_password_mut(&mut self) -> &mut String {
         &mut self.password
