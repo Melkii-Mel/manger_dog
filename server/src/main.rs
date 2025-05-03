@@ -1,10 +1,7 @@
 mod api_datatypes;
 
 use entities::{configure_endpoints, Creds, Register, RegisterError};
-use actix_surreal_starter::{
-    build_register_config, ActixSurrealStarter, DbAccessConfig, NamesConfig,
-    RegisterConfig, ServerStarter, Users,
-};
+use actix_surreal_starter::{build_register_config, ActixSurrealStarter, DbAccessConfig, Entity, NamesConfig, RegisterConfig, ServerStarter, Users};
 use actix_web::web::Json;
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use surrealdb::engine::remote::ws::Client;

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 actix-surreal-starter-macros = { path = "../../actix-surreal-starter/actix-surreal-starter-macros" }
+actix-surreal-starter-types = { path = "../../actix-surreal-starter/actix-surreal-starter-types" }
 phf = { version = "0.11.3", features = ["macros"] }
 actix-surreal-starter = { path = "../../actix-surreal-starter", optional = true }
 actix-web = { version = "4.10.2", optional = true }

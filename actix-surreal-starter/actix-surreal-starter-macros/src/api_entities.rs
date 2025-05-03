@@ -61,23 +61,25 @@ macro_rules! api_entities {
 
         impl $name {
             fn paths() -> &'static [&'static str] {
-                PATHS.get(Self::table_name()).unwrap()
-            }
-            pub fn table_name() -> &'static str {
-                $db_table_name
-            }
-            pub fn request_address() -> &'static str {
-                concat!("/api/", $db_table_name)
+                PATHS.get($db_table_name).unwrap()
             }
             #[cfg(feature = "server")]
             fn query_builder() -> actix_surreal_starter::query_builder::QueryBuilder {
                 actix_surreal_starter::query_builder::QueryBuilder {
                     paths: Self::paths(),
-                    table_name: Self::table_name(),
+                    table_name: $db_table_name,
                     fkey_path_map: None, //TODO: nah oh it can't be None it's just a placeholder
                 }
             }
-            pub fn validate(&self) -> Result<(), $name_error> {
+        }
+        impl ::actix_surreal_starter_types::Entity<$name_error> for $name {
+            fn table_name() -> &'static str {
+                $db_table_name
+            }
+            fn api_location() -> &'static str {
+                concat!("/api/", $db_table_name)
+            }
+            fn validate(&self) -> Result<(), $name_error> {
                 let mut erronous = false;
                 let mut result = $name_error {
                     $(
@@ -98,7 +100,7 @@ macro_rules! api_entities {
                     false => Ok(()),
                 }
             }
-        }
+        } 
         )*
     };
 }
