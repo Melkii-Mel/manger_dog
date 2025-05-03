@@ -15,7 +15,7 @@ pub mod query_builder;
 pub mod static_files;
 
 pub use crate::authentication::{LoginData, RegisterConfig, UserId};
-pub use actix_surreal_types::*;
+pub use actix_surreal_starter_types::*;
 pub use configuration::*;
 pub use proc_macros::error_type;
 pub use server_starter::*;

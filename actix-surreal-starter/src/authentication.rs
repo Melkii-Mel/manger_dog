@@ -3,7 +3,7 @@ use crate::session::{
     refresh_session,
 };
 use crate::{NamesConfig, QueriesConfig, SessionConfig, DB};
-use actix_surreal_types::{ClientError, Error, ServerError};
+use actix_surreal_starter_types::{ClientError, Error, ServerError};
 use actix_web::cookie::Cookie;
 use actix_web::http::StatusCode;
 use actix_web::{web, FromRequest, HttpRequest, HttpResponse, ResponseError};
@@ -34,7 +34,7 @@ pub async fn login(
     creds: web::Json<impl LoginData>,
     queries: Arc<QueriesConfig>,
     session_config: Arc<SessionConfig>,
-) -> actix_surreal_types::ResponseResult {
+) -> actix_surreal_starter_types::ResponseResult {
     let creds = creds.into_inner();
     let user: Option<IdAndPassword> = get_id_and_password(&queries, &creds).await?;
     if let Some(id_and_password) = user {
@@ -65,7 +65,7 @@ pub async fn logout(
     queries_config: Arc<QueriesConfig>,
     http_request: HttpRequest,
     session_config: Arc<SessionConfig>,
-) -> actix_surreal_types::ResponseResult {
+) -> actix_surreal_starter_types::ResponseResult {
     match get_access_token(&http_request, &session_config) {
         Ok(access_token) => {
             delete_session_from_db(&queries_config, access_token).await?;
@@ -81,7 +81,7 @@ pub async fn register<TUserdata, TQuery, TUserdataError>(
     session_config: Arc<SessionConfig>,
     register_config: Arc<RegisterConfig<TQuery, TUserdata, TUserdataError>>,
     creds: web::Json<TUserdata>,
-) -> actix_surreal_types::ResponseResult
+) -> actix_surreal_starter_types::ResponseResult
 where
     TQuery: IntoQuery + Clone + Send + Sync,
     TUserdata: LoginData + Send + Sync,
@@ -113,7 +113,7 @@ pub async fn refresh(
     http_request: HttpRequest,
     session_config: Arc<SessionConfig>,
     queries_config: Arc<QueriesConfig>,
-) -> actix_surreal_types::ResponseResult {
+) -> actix_surreal_starter_types::ResponseResult {
     let refresh_token_cookie = http_request.cookie(session_config.refresh_token_cookie_name);
     match refresh_token_cookie {
         None => Err(ClientError::NoRefreshToken.into()),
@@ -140,7 +140,7 @@ pub async fn get_userdata<TUserdata: DeserializeOwned + Serialize>(
     http_request: HttpRequest,
     session_config: Arc<SessionConfig>,
     queries_config: Arc<QueriesConfig>,
-) -> actix_surreal_types::ResponseResult {
+) -> actix_surreal_starter_types::ResponseResult {
     match get_access_token(&http_request, &session_config) {
         Ok(access_token) => Ok(HttpResponse::Ok().json(
             DB.query(queries_config.get_userdata_by_id)

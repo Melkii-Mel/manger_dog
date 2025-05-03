@@ -1,5 +1,5 @@
 use crate::bindings::{set_location_href, DomInteractionError};
-use actix_surreal_types::ClientUnitResult;
+use actix_surreal_starter_types::ClientUnitResult;
 use futures::future::LocalBoxFuture;
 use futures::future::Shared;
 use futures::FutureExt;
