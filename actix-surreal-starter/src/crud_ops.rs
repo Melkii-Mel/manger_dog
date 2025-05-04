@@ -56,7 +56,7 @@ pub async fn select<T: DeserializeOwned>(
         .take::<Option<T>>(0)?
         .ok_or(CrudError::MissingRecord(id.clone()))?)
 }
-
+// TODO: Return WithId
 pub async fn select_all<T: DeserializeOwned>(
     user_id: RecordId,
     query_builder: QueryBuilder,

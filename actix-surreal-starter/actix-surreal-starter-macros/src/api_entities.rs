@@ -37,7 +37,7 @@ macro_rules! api_entities {
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::put().to(
-                |entity: actix_web::web::Json<actix_surreal_starter::api::WithId<serde_json::Value>>, user_id: actix_surreal_starter::UserId| async move {
+                |entity: actix_web::web::Json<actix_surreal_starter_types::WithId<serde_json::Value>>, user_id: actix_surreal_starter::UserId| async move {
                     actix_surreal_starter::crud_ops::update(entity.0.id, entity.0.data, user_id.0, $name::query_builder()).await
                 }
             ))
