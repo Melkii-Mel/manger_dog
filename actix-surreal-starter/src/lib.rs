@@ -9,7 +9,6 @@ mod helper_implementations;
 mod server_address;
 mod server_starter;
 pub mod crud_ops;
-pub mod api;
 pub mod query_builder;
 pub mod static_files;
 
