@@ -52,11 +52,11 @@ macro_rules! api_entities {
         $(
         #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
         pub struct $name {
-            $(pub $field: $type),*
+            $(pub $field: api_entities!(@parse_type $type)),*
         }
         #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
         pub struct $name_error {
-            $(pub $field: Vec<$validation_error_type>),*
+            $(pub $field: api_entities!(@parse_error_type $validation_error_type, $type)),*
         }
 
         impl $name {
@@ -83,7 +83,7 @@ macro_rules! api_entities {
                 let mut erronous = false;
                 let mut result = $name_error {
                     $(
-                    $field: {
+                    $field: api_entities!(@parse_error $type, expr_1: {
                         let mut errors: Vec<$validation_error_type> = Vec::new();
                         $($(
                             if let Err(e) = $validator_type::$validator((&self.$field $($(, &self.$validation_field)* )?)) {
@@ -92,7 +92,11 @@ macro_rules! api_entities {
                             }
                         )*)?
                         errors
-                    },
+                    }, expr_2: {
+                        let errors = &self.$field.validate();
+                        erronous = errors.is_err();
+                        errors
+                    }),
                     )*
                 };
                 match erronous {
@@ -102,5 +106,23 @@ macro_rules! api_entities {
             }
         } 
         )*
+    };
+    (@parse_type RecordOf<$ty:ty, $ty_err:ty>) => {
+        RecordOf<$ty>
+    };
+    (@parse_type $ty:ty) => {
+        $ty
+    };
+    (@parse_error_type $error_type:ty, RecordOf<$ty:ty, $ty_err:ty>) => {
+        Result<(), $ty_err>
+    };
+    (@parse_error_type $error_type:ty, $ty:ty) => {
+        Vec<$error_type>
+    };
+    (@parse_error RecordOf<$ty:ty, $ty_err:ty>, expr_1: $e1:expr, expr_2: $e2:expr) => {
+        $e2
+    };
+    (@parse_error $ty:ty, expr_1: $e1:expr, expr_2: $e2:expr) => {
+        $e1
     };
 }
