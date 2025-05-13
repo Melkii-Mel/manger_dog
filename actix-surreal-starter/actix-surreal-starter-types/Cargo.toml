@@ -14,4 +14,5 @@ serde_json = "1.0.140"
 
 [features]
 default = []
+wasm = []
 actix-surreal-impl = ["actix-web"]

@@ -1,11 +1,12 @@
-use actix_surreal_starter_types::pre_built::validators::*;
+#[cfg(feature = "actix-surreal-starter")]
+use actix_surreal_starter::LoginData;
 use actix_surreal_starter_macros::{api_entities, impl_display_for_error};
+use actix_surreal_starter_types::pre_built::validators::*;
+use actix_surreal_starter_types::{RecordOf};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use surrealdb::RecordId;
 use thiserror::Error;
-#[cfg(feature = "actix-surreal-starter")]
-use actix_surreal_starter::LoginData;
 
 #[derive(Debug, Error, Serialize, Deserialize, Clone)]
 pub enum ApiValidationError {
@@ -50,7 +51,7 @@ api_entities!(
 
     Tag|TagError("tags" ["user_id", "metadata_id.user_id"]) {
         user_id: RecordId,
-        metadata_id: RecordId,
+        metadata_id: RecordOf<Metadata>|MetadataError,
     }
 
     MetadataTag|MetadataTagError("metadata_tags" ["metadata_id.user_id"]) {

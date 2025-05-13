@@ -1,5 +1,3 @@
-mod api_datatypes;
-
 use entities::{configure_endpoints, Creds, Register, RegisterError};
 use actix_surreal_starter::{build_register_config, ActixSurrealStarter, DbAccessConfig, Entity, NamesConfig, RegisterConfig, ServerStarter, Users};
 use actix_web::web::Json;

@@ -7,7 +7,7 @@ macro_rules! api_entities {
             $name:ident|$name_error:ident( $db_table_name:literal $( [ $( $path_to_ownership:literal ),* ] )? )
             {
                 $(
-                    $field:ident: $type:ty $( [ $( $validator:ident $( ( $( $validation_field:ident ),*$(,)? ) )? ),* $(,)? ] )?
+                    $field:ident: $type:ty$(|$record_of_error:ty)? $( [ $( $validator:ident $( ( $( $validation_field:ident ),*$(,)? ) )? ),* $(,)? ] )?
                 ),*$(,)*
             }
         )*
@@ -32,8 +32,8 @@ macro_rules! api_entities {
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::post().to(
-                |entity: actix_web::web::Json<$name>, user_id: actix_surreal_starter::UserId| async move {
-                    Ok::<_, ::actix_surreal_starter::crud_ops::CrudError>(::actix_web::HttpResponse::Ok().json(actix_surreal_starter::crud_ops::insert(entity.0, user_id.0,$name::query_builder()).await?))
+                |mut entity: actix_web::web::Json<$name>, user_id: actix_surreal_starter::UserId| async move {
+                    entity.0.insert(user_id).await.map(|v| ::actix_web::HttpResponse::Ok().json(v))
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::put().to(
@@ -56,7 +56,7 @@ macro_rules! api_entities {
         }
         #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
         pub struct $name_error {
-            $(pub $field: api_entities!(@parse_error_type $validation_error_type, $type)),*
+            $(pub $field: api_entities!(@parse_error_type $validation_error_type $(, $record_of_error )? )),*
         }
 
         impl $name {
@@ -71,6 +71,27 @@ macro_rules! api_entities {
                     fkey_path_map: None, //TODO: nah oh it can't be None it's just a placeholder
                 }
             }
+            #[cfg(feature = "server")]
+            pub async fn insert(
+                mut self,
+                user_id: actix_surreal_starter::UserId,
+            ) -> Result<::serde_json::Value, ::actix_surreal_starter::crud_ops::CrudError> {
+                let mut result = ::serde_json::Map::new();
+                $(
+                api_entities!(@parse_match_record_of $( $record_of_error, )* expr_1: {}, expr_2: {
+                    if let ::actix_surreal_starter_types::RecordOf::Record(record) = self.$field {
+                        let inserted = record.insert(user_id.clone()).await?;
+                        self.$field = ::actix_surreal_starter_types::RecordOf::Id(serde_json::from_value(inserted.get("id").unwrap().clone()).unwrap());
+                        result.insert(stringify!($field).to_string(), inserted);
+                    }
+                });
+                )*
+                let id =
+                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0, $name::query_builder())
+                        .await?;
+                result.insert("id".to_string(), ::serde_json::to_value(id)?);
+                Ok(serde_json::Value::Object(result))
+            }
         }
         impl ::actix_surreal_starter_types::Entity<$name_error> for $name {
             fn table_name() -> &'static str {
@@ -83,7 +104,7 @@ macro_rules! api_entities {
                 let mut erronous = false;
                 let mut result = $name_error {
                     $(
-                    $field: api_entities!(@parse_error $type, expr_1: {
+                    $field: api_entities!(@parse_match_record_of $( $record_of_error, )* expr_1: {
                         let mut errors: Vec<$validation_error_type> = Vec::new();
                         $($(
                             if let Err(e) = $validator_type::$validator((&self.$field $($(, &self.$validation_field)* )?)) {
@@ -93,8 +114,12 @@ macro_rules! api_entities {
                         )*)?
                         errors
                     }, expr_2: {
-                        let errors = &self.$field.validate();
-                        erronous = errors.is_err();
+                        let errors$(: Result<(), $record_of_error> )? = if let actix_surreal_starter_types::RecordOf::Record(record) = &self.$field {
+                            record.validate()
+                        } else {
+                            Ok(())
+                        };
+                        erronous |= errors.is_err();
                         errors
                     }),
                     )*
@@ -104,7 +129,21 @@ macro_rules! api_entities {
                     false => Ok(()),
                 }
             }
-        } 
+        }
+        impl ::actix_surreal_starter_types::_ReplaceWithIds for $name {
+            fn _replace_with_ids(mut self, value: &mut ::serde_json::Value) -> Result<Self, serde_json::Error> {
+                use ::actix_surreal_starter_types::ReplaceWithIds as _;
+                $(
+                api_entities!(@parse_match_record_of $( $record_of_error, )? expr_1: {} , expr_2: {
+                    if let ::actix_surreal_starter_types::RecordOf::Record(replacing) = self.$field {
+                        let replaced = replacing.replace_with_ids(value[stringify!($field)].take());
+                        self.$field = actix_surreal_starter_types::RecordOf::Id(replaced?);
+                    }
+                });
+                )*
+                Ok(self)
+            }
+        }
         )*
     };
     (@parse_type RecordOf<$ty:ty, $ty_err:ty>) => {
@@ -113,16 +152,16 @@ macro_rules! api_entities {
     (@parse_type $ty:ty) => {
         $ty
     };
-    (@parse_error_type $error_type:ty, RecordOf<$ty:ty, $ty_err:ty>) => {
+    (@parse_error_type $error_type:ty, $ty_err:ty) => {
         Result<(), $ty_err>
     };
-    (@parse_error_type $error_type:ty, $ty:ty) => {
+    (@parse_error_type $error_type:ty) => {
         Vec<$error_type>
     };
-    (@parse_error RecordOf<$ty:ty, $ty_err:ty>, expr_1: $e1:expr, expr_2: $e2:expr) => {
+    (@parse_match_record_of $ty_err:ty, expr_1: $e1:expr, expr_2: $e2:expr) => {
         $e2
     };
-    (@parse_error $ty:ty, expr_1: $e1:expr, expr_2: $e2:expr) => {
+    (@parse_match_record_of expr_1: $e1:expr, expr_2: $e2:expr) => {
         $e1
     };
 }

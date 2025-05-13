@@ -131,7 +131,7 @@ pub async fn refresh(
                 session_tokens.access,
                 Some(session_tokens.refresh),
             );
-            Ok(response.json(Ok::<(),()>(())))
+            Ok(response.json(Ok::<(), ()>(())))
         }
     }
 }
@@ -257,6 +257,7 @@ fn get_access_token(
         .ok_or(ClientError::NoAccessToken)
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UserId(pub RecordId);
 
 impl FromRequest for UserId {

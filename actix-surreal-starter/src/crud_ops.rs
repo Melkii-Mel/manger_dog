@@ -21,6 +21,8 @@ pub enum CrudError {
     MissingRecord(RecordId),
     #[error("Internal error: cannot build query. Must be constructed in deeper water: {0}")]
     QueryConstructionError(#[from] BuilderError),
+    #[error("Failed to perform serialization/deserialization: {0}")]
+    SerdeError(#[from] serde_json::Error),
 }
 
 impl ResponseError for CrudError {}
