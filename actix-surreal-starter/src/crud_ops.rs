@@ -1,4 +1,5 @@
 use crate::query_builder::{BuilderError, QueryBuilder};
+use crate::WithId;
 use crate::DB;
 use actix_web::ResponseError;
 use serde::de::DeserializeOwned;
@@ -21,6 +22,10 @@ pub enum CrudError {
     MissingRecord(RecordId),
     #[error("Internal error: cannot build query. Must be constructed in deeper water: {0}")]
     QueryConstructionError(#[from] BuilderError),
+    #[error("Failed to perform serialization/deserialization: {0}")]
+    SerdeError(#[from] serde_json::Error),
+    #[error("Tried to insert a user_id key, but the entity had the wrong format: {0}.\n Entity must serialize into Map. In most cases it just means that the entity must be a struct with named fields.")]
+    RecordFormatError(serde_json::Value),
 }
 
 impl ResponseError for CrudError {}
@@ -29,10 +34,22 @@ pub async fn insert<T>(
     value: T,
     user_id: RecordId,
     query_builder: QueryBuilder,
+    insert_user_id: bool,
 ) -> Result<RecordId, CrudError>
 where
     T: Serialize + 'static,
 {
+    let mut value = serde_json::to_value(value)?;
+    if insert_user_id {
+        if let serde_json::Value::Object(ref mut map) = value {
+            map.insert(
+                "user_id".to_string(),
+                serde_json::to_value(user_id.clone())?,
+            );
+        } else {
+            return Err(CrudError::RecordFormatError(value));
+        }
+    }
     let id = DB
         .query(query_builder.insert()?)
         .bind(("value", value))
@@ -56,16 +73,16 @@ pub async fn select<T: DeserializeOwned>(
         .take::<Option<T>>(0)?
         .ok_or(CrudError::MissingRecord(id.clone()))?)
 }
-// TODO: Return WithId
+
 pub async fn select_all<T: DeserializeOwned>(
     user_id: RecordId,
     query_builder: QueryBuilder,
-) -> Result<Vec<T>, CrudError> {
+) -> Result<Vec<WithId<T>>, CrudError> {
     Ok(DB
         .query(query_builder.select_all()?)
         .bind(user_id)
         .await?
-        .take::<Vec<T>>(0)?)
+        .take::<Vec<WithId<T>>>(0)?)
 }
 
 pub async fn update(
