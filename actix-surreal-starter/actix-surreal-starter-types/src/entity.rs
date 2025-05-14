@@ -16,20 +16,8 @@ pub trait Entity<E> {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct WithId<T> {
     pub id: RecordId,
+    #[serde(flatten)]
     pub data: T,
-}
-
-impl<T: DeserializeOwned> WithId<T> {
-    pub fn wrap(value: Value) -> Option<WithId<T>> {
-        match value {
-            Value::Object(mut map) => {
-                let id: RecordId = serde_json::from_value(map.remove("id")?).ok()?;
-                let data: T = serde_json::from_value(Value::Object(map)).ok()?;
-                Some(WithId { id, data })
-            }
-            _ => None,
-        }
-    }
 }
 
 #[cfg(not(feature = "wasm"))]

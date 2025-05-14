@@ -68,7 +68,7 @@ macro_rules! api_entities {
                 actix_surreal_starter::query_builder::QueryBuilder {
                     paths: Self::paths(),
                     table_name: $db_table_name,
-                    fkey_path_map: None, //TODO: nah oh it can't be None it's just a placeholder
+                    fkey_path_map: None, // TODO: Required to use select_all_by_fkey(), e.g. to select all loan payments for a loan
                 }
             }
             #[cfg(feature = "server")]
@@ -87,7 +87,7 @@ macro_rules! api_entities {
                 });
                 )*
                 let id =
-                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0, $name::query_builder())
+                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0, $name::query_builder(), $name::paths()[0] == "user_id")
                         .await?;
                 result.insert("id".to_string(), ::serde_json::to_value(id)?);
                 Ok(serde_json::Value::Object(result))
