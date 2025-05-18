@@ -87,7 +87,7 @@ pub async fn select_all<T: DeserializeOwned>(
 
 pub async fn update(
     id: RecordId,
-    content_to_update: serde_json::Value,
+    content_to_update: impl Serialize + 'static,
     user_id: RecordId,
     query_builder: QueryBuilder,
 ) -> Result<(), CrudError> {

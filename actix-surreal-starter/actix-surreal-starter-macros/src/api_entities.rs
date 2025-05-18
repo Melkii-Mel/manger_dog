@@ -33,12 +33,24 @@ macro_rules! api_entities {
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::post().to(
                 |mut entity: actix_web::web::Json<$name>, user_id: actix_surreal_starter::UserId| async move {
-                    entity.0.insert(user_id).await.map(|v| ::actix_web::HttpResponse::Ok().json(v))
+                    let result = if let Err(e) = ::actix_surreal_starter::Entity::validate(&entity.0) {
+                        Err(e)
+                    }
+                    else {
+                        Ok(entity.0.insert(user_id).await?)
+                    };
+                    Ok::<_, ::actix_surreal_starter::crud_ops::CrudError>(::actix_web::HttpResponse::Ok().json(result))
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::put().to(
-                |entity: actix_web::web::Json<actix_surreal_starter_types::WithId<serde_json::Value>>, user_id: actix_surreal_starter::UserId| async move {
-                    actix_surreal_starter::crud_ops::update(entity.0.id, entity.0.data, user_id.0, $name::query_builder()).await
+                |entity: actix_web::web::Json<actix_surreal_starter_types::WithId<$name>>, user_id: actix_surreal_starter::UserId| async move {
+                    let result = if let Err(e) = ::actix_surreal_starter::Entity::validate(&entity.0.data) {
+                        Err(e)
+                    }
+                    else {
+                        Ok($name::update(entity.0, user_id).await?)
+                    };
+                    Ok::<_, ::actix_surreal_starter::crud_ops::CrudError>(::actix_web::HttpResponse::Ok().json(result))
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::delete().to(
@@ -76,6 +88,24 @@ macro_rules! api_entities {
                 mut self,
                 user_id: actix_surreal_starter::UserId,
             ) -> Result<::serde_json::Value, ::actix_surreal_starter::crud_ops::CrudError> {
+                let mut result;
+                (self, result) = self.insert_children(user_id.clone()).await?;
+                let id =
+                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0, $name::query_builder(), $name::paths()[0] == "user_id")
+                        .await?;
+                result.insert("id".to_string(), ::serde_json::to_value(id)?);
+                Ok(serde_json::Value::Object(result))
+            }
+            #[cfg(feature = "server")]
+            pub async fn update(with_id: actix_surreal_starter_types::WithId<$name>, user_id: actix_surreal_starter::UserId) -> Result<::serde_json::Value, ::actix_surreal_starter::crud_ops::CrudError> {
+                let mut data = with_id.data;
+                let id = with_id.id;
+                let mut result;
+                (data, result) = data.insert_children(user_id.clone()).await?;
+                actix_surreal_starter::crud_ops::update(id, data, user_id.0, $name::query_builder()).await?;
+                Ok(serde_json::Value::Object(result))
+            }
+            async fn insert_children(mut self, user_id: actix_surreal_starter::UserId) -> Result<(Self, ::serde_json::map::Map<String, ::serde_json::Value>), ::actix_surreal_starter::crud_ops::CrudError> {
                 let mut result = ::serde_json::Map::new();
                 $(
                 api_entities!(@parse_match_record_of $( $record_of_error, )* expr_1: {}, expr_2: {
@@ -86,11 +116,7 @@ macro_rules! api_entities {
                     }
                 });
                 )*
-                let id =
-                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0, $name::query_builder(), $name::paths()[0] == "user_id")
-                        .await?;
-                result.insert("id".to_string(), ::serde_json::to_value(id)?);
-                Ok(serde_json::Value::Object(result))
+                Ok((self, result))
             }
         }
         impl ::actix_surreal_starter_types::Entity<$name_error> for $name {
@@ -114,11 +140,12 @@ macro_rules! api_entities {
                         )*)?
                         errors
                     }, expr_2: {
-                        let errors$(: Result<(), $record_of_error> )? = if let actix_surreal_starter_types::RecordOf::Record(record) = &self.$field {
-                            record.validate()
-                        } else {
-                            Ok(())
-                        };
+                        let errors$(: Box<Result<(), $record_of_error>> )? = Box::new({ if let actix_surreal_starter_types::RecordOf::Record(record) = &self.$field {
+                                record.validate()
+                            } else {
+                                Ok(())
+                            }
+                        });
                         erronous |= errors.is_err();
                         errors
                     }),
@@ -153,7 +180,7 @@ macro_rules! api_entities {
         $ty
     };
     (@parse_error_type $error_type:ty, $ty_err:ty) => {
-        Result<(), $ty_err>
+        Box<Result<(), $ty_err>>
     };
     (@parse_error_type $error_type:ty) => {
         Vec<$error_type>
