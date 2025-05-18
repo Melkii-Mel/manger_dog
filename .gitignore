@@ -17,3 +17,5 @@ Cargo.lock
 *.pdb
 
 .env
+*.bat
+todo
