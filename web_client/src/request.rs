@@ -5,7 +5,7 @@ use crate::config::get_config;
 use crate::log;
 use crate::request::Method::{DELETE, GET, PATCH, POST, PUT};
 use crate::utils::log;
-use actix_surreal_types::ClientResult;
+use actix_surreal_starter_types::ClientResult;
 use gloo_net::http::Response;
 use gloo_net::{http, Error};
 use once_cell::unsync::OnceCell;
@@ -54,105 +54,54 @@ thread_local! {
 }
 
 pub struct Request;
-
-macro_rules! generic_method {
-    ($name:ident$(($($param:ident:$ty:ty),*$(,)?))? |$url_ident:ident, $value_ident:ident, $callback_ident:ident| $body:block) => {
-        pub fn $name<S, F, T>(url: &str, $value_ident: S, $callback_ident: F, $( $($param:$ty,)* )?)
-        where
-            S: Serialize + 'static,
-            F: Fn(T) + 'static,
-            T: DeserializeOwned + Debug,
-        {
-            let $url_ident = url.to_string();
-            spawn_local(async move {
-                if (get_config().authorized_locations.iter().any(|location| $url_ident.starts_with(location))) {
-                    get_access().await.unwrap();
-                }
-                $body
-            })
-        }
-    };
-}
-
-macro_rules! method {
-    ($name:ident($method:expr)) => {
-        generic_method!(
-            $name | url,
-            value,
-            callback | { Self::_generic_json_request($method, url, value, callback).await }
-        );
-    };
-}
+pub struct RRequest;
 
 impl Request {
-    pub fn get<F, T>(url: &str, callback: F)
-    where
-        F: Fn(T) + 'static,
-        T: DeserializeOwned + Debug,
-    {
-        let url = Rc::new(url.to_string());
+    pub async fn get<T: DeserializeOwned + Debug>(url: String) -> Option<T> {
+        let url = Rc::new(url);
         let requester = {
             let url = url.clone();
             move || RequestBuilder::new(&url, GET).finish()
         };
-        spawn_local(async move {
-            let response =
-                Self::_generic_request_with_client_result_response::<_, _, T>(&url, requester)
-                    .await;
-            if let Some(response) = response {
-                callback(response);
-            }
-        })
+        Self::_generic_request_with_client_result_response::<_, _, T>(&url, requester).await
     }
-    pub fn get_body<F>(url: &str, callback: F)
-    where
-        F: Fn(String) + 'static,
-    {
-        let url = url.to_string();
-        spawn_local(async move {
-            if get_config()
-                .authorized_locations
-                .iter()
-                .any(|location| url.starts_with(location))
-            {
-                get_access().await.unwrap();
-            }
-            if let Some(body) = Self::get_body_async(&url).await {
-                callback(body);
-            }
-        })
-    }
-
-    pub async fn get_body_async(url: &str) -> Option<String> {
-        let url = url.to_string();
-        let response = RequestBuilder::new(&url, GET).finish().await;
+    pub async fn get_body(url: &str) -> Option<String> {
+        Self::get_access_if_required(url).await;
+        let response = RequestBuilder::new(url, GET).finish().await;
         Some(read_body(response?).await?)
     }
-
-    method!(post(POST));
-    method!(put(PUT));
-    method!(patch(PATCH));
-    method!(delete(DELETE));
-
-    async fn _generic_json_request<S, F, T>(method: Method, url: String, value: S, callback: F)
-    where
-        S: Serialize + 'static,
-        F: Fn(T) + 'static,
-        T: DeserializeOwned + Debug,
-    {
-        let value = Rc::new(value);
-        let url = Rc::new(url);
-        let requester = {
-            let url = url.clone();
-            move || RequestBuilder::new(&url, method.clone()).json(value.clone())
-        };
-        if let Some(response) =
-            Self::_generic_request_with_client_result_response::<_, _, T>(&url, requester).await
-        {
-            callback(response);
-        }
+    pub async fn post<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+        url: String,
+        data: T,
+    ) -> Option<R> {
+        Self::write(url, data, POST).await
     }
-
+    pub async fn put<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+        url: String,
+        data: T,
+    ) -> Option<R> {
+        Self::write(url, data, PUT).await
+    }
+    pub async fn patch<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+        url: String,
+        data: T,
+    ) -> Option<R> {
+        Self::write(url, data, PATCH).await
+    }
+    pub async fn delete<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+        url: String,
+        data: T,
+    ) -> Option<R> {
+        Self::write(url, data, DELETE).await
+    }
+    async fn write<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+        url: String,
+        data: T,
+        method: Method,
+    ) -> Option<R> {
+        Self::get_access_if_required(&url).await;
+        Self::_generic_json_request(method, url, data).await
+    }
     async fn _generic_request_with_client_result_response<F, R, T>(
         url: &str,
         requester: F,
@@ -164,24 +113,34 @@ impl Request {
     {
         for _ in 0..2 {
             Self::get_access_if_required(url).await;
-            if let Some(response) = requester().await {
-                if let Some(client_result) = read_json::<ClientResult<T>>(response).await {
-                    match client_result {
-                        Ok(value) => {
-                            return Some(value);
-                        }
-                        Err(e) => {
-                            if let Some(message) = get_request_config().client_error_data_message {
-                                log!("{}{:?}", message, e)
-                            }
-                        }
+            let response = requester().await?;
+            let client_result = read_json::<ClientResult<T>>(response).await?;
+            match client_result {
+                Ok(value) => {
+                    return Some(value);
+                }
+                Err(e) => {
+                    if let Some(message) = get_request_config().client_error_data_message {
+                        log!("{}{:?}", message, e)
                     }
                 }
             }
         }
         None
     }
-
+    async fn _generic_json_request<T, R>(method: Method, url: String, value: T) -> Option<R>
+    where
+        T: Serialize + 'static,
+        R: DeserializeOwned + Debug,
+    {
+        let value = Rc::new(value);
+        let url = Rc::new(url);
+        let requester = {
+            let url = url.clone();
+            move || RequestBuilder::new(&url, method.clone()).json(value.clone())
+        };
+        Self::_generic_request_with_client_result_response::<_, _, R>(&url, requester).await
+    }
     async fn get_access_if_required(url: &str) {
         if get_config()
             .authorized_locations
@@ -190,6 +149,71 @@ impl Request {
         {
             get_access().await.unwrap();
         }
+    }
+}
+
+impl RRequest {
+    pub async fn get<T: DeserializeOwned + Debug, F: FnOnce(T) + 'static>(
+        url: String,
+        callback: F,
+    ) {
+        spawn_local(async {
+            if let Some(value) = Request::get::<T>(url).await {
+                callback(value)
+            }
+        })
+    }
+    pub fn get_body<F: FnOnce(String) + 'static>(url: &str, callback: F) {
+        let url = url.to_string();
+        spawn_local(async move {
+            if let Some(body) = Request::get_body(&url).await {
+                callback(body)
+            }
+        })
+    }
+    pub fn post<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+        url: String,
+        data: T,
+        callback: F,
+    ) {
+        spawn_local(async move {
+            if let Some(client_result) = Request::post(url, data).await {
+                callback(client_result)
+            }
+        });
+    }
+    pub fn put<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+        url: String,
+        data: T,
+        callback: F,
+    ) {
+        spawn_local(async move {
+            if let Some(client_result) = Request::put(url, data).await {
+                callback(client_result)
+            }
+        });
+    }
+    pub fn patch<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+        url: String,
+        data: T,
+        callback: F,
+    ) {
+        spawn_local(async move {
+            if let Some(client_result) = Request::patch(url, data).await {
+                callback(client_result)
+            }
+        });
+    }
+    pub fn delete<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+        url: String,
+        data: T,
+        callback: F,
+    ) {
+        spawn_local(async move {
+            if let Some(client_result) = Request::delete(url, data).await {
+                callback(client_result)
+            }
+        });
     }
 }
 
