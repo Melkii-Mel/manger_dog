@@ -8,44 +8,44 @@ use std::sync::Mutex;
 use std::sync::{Arc, LazyLock, OnceLock};
 use crate::RecordId;
 
-#[cfg(feature = "wasm")]
+#[cfg(not(feature = "server"))]
 thread_local!(
     static GLOBAL_STORAGE_OWNER: GlobalStorageOwner = GlobalStorageOwner::new();
 );
 
-#[cfg(feature = "wasm")]
+#[cfg(not(feature = "server"))]
 pub fn get() -> GlobalStorage {
     let mut storage = None::<GlobalStorage>;
     GLOBAL_STORAGE_OWNER.with(|owner| storage = Some(owner.inner.clone()));
     storage.unwrap()
 }
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 static GLOBAL_STORAGE_OWNER: GlobalStorageOwner = GlobalStorageOwner::new();
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 pub fn get() -> GlobalStorage {
     GLOBAL_STORAGE_OWNER.inner.clone()
 }
 
-#[cfg(feature = "wasm")]
+#[cfg(not(feature = "server"))]
 type StorageMap = HashMap<TypeId, HashMap<RecordId, Rc<dyn Any>>>;
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 type StorageMap = HashMap<TypeId, HashMap<RecordId, Arc<dyn Any + Send + Sync>>>;
 
 #[derive(Debug)]
 pub struct GlobalStorageOwner {
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "server"))]
     inner: LazyCell<GlobalStorage>,
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "server")]
     inner: LazyLock<GlobalStorage>,
 }
 
 #[derive(Debug, Clone)]
 pub struct GlobalStorage {
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "server"))]
     inner: Rc<RefCell<StorageMap>>,
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "server")]
     inner: Arc<Mutex<StorageMap>>,
 }
 
@@ -53,13 +53,13 @@ impl GlobalStorageOwner {
     pub const fn new() -> Self {
         Self {
             inner: {
-                #[cfg(feature = "wasm")]
+                #[cfg(not(feature = "server"))]
                 {
                     LazyCell::new(|| GlobalStorage {
                         inner: Rc::new(RefCell::new(HashMap::new())),
                     })
                 }
-                #[cfg(not(feature = "wasm"))]
+                #[cfg(feature = "server")]
                 {
                     LazyLock::new(|| GlobalStorage {
                         inner: Arc::new(Mutex::new(HashMap::new())),
@@ -71,7 +71,7 @@ impl GlobalStorageOwner {
 }
 
 impl GlobalStorage {
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "server"))]
     pub fn set<T: 'static>(&self, entry: WithId<T>) -> Option<Rc<T>> {
         self.inner
             .borrow_mut()
@@ -84,7 +84,7 @@ impl GlobalStorage {
             })
     }
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "server")]
     pub fn set<T: Send + Sync + 'static>(&self, entry: WithId<T>) -> Option<Arc<T>> {
         self.inner
             .lock()
@@ -98,7 +98,7 @@ impl GlobalStorage {
             })
     }
 
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "server"))]
     pub fn get<T: 'static>(&self, id: &RecordId) -> Option<Rc<T>> {
         Some(
             self.inner
@@ -111,7 +111,7 @@ impl GlobalStorage {
         )
     }
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "server")]
     pub fn get<T: Send + Sync + 'static>(&self, id: &RecordId) -> Option<Arc<T>> {
         Some(
             self.inner
@@ -125,7 +125,7 @@ impl GlobalStorage {
         )
     }
 
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "server"))]
     pub fn delete<T: 'static>(&self, id: &RecordId) -> Option<Rc<T>> {
         Some(
             self.inner
@@ -137,7 +137,7 @@ impl GlobalStorage {
         )
     }
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "server")]
     pub fn delete<T: Send + Sync + 'static>(&self, id: &RecordId) -> Option<Arc<T>> {
         Some(
             self.inner

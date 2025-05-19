@@ -26,4 +26,4 @@ phf = "0.11.3"
 regex = "1.11.1"
 colored = "3.0.0"
 actix-surreal-starter-macros = { path = "actix-surreal-starter-macros" }
-actix-surreal-starter-types = { path = "actix-surreal-starter-types", features = ["actix-surreal-impl"] }
+actix-surreal-starter-types = { path = "actix-surreal-starter-types", features = ["server"] }
