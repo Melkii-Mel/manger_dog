@@ -20,14 +20,14 @@ pub struct WithId<T> {
     pub data: T,
 }
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 impl<T: Send + Sync + 'static> WithId<T> {
     pub fn register_record(self) {
         global_entities_storage::get().set(self);
     }
 }
 
-#[cfg(feature = "wasm")]
+#[cfg(not(feature = "server"))]
 impl<T: 'static> WithId<T> {
     pub fn register_record(self) {
         global_entities_storage::get().set(self);
@@ -37,20 +37,20 @@ impl<T: 'static> WithId<T> {
 #[derive(Debug, Display, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
 pub struct RecordId(
-    #[cfg(feature = "wasm")]
+    #[cfg(not(feature = "server"))]
     Value,
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(feature = "server")]
     surrealdb::RecordId,
 );
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 impl From<surrealdb::RecordId> for RecordId {
     fn from(id: surrealdb::RecordId) -> Self {
         RecordId(id)
     }
 }
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 impl From<RecordId> for surrealdb::RecordId {
     fn from(value: RecordId) -> Self {
         value.0
@@ -130,8 +130,8 @@ macro_rules! impl_replace_with_ids {
     };
 }
 
-#[cfg(feature = "wasm")]
+#[cfg(not(feature = "server"))]
 impl_replace_with_ids!();
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(feature = "server")]
 impl_replace_with_ids!(Send | Sync);
