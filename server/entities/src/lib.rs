@@ -5,7 +5,7 @@ use actix_surreal_starter_types::pre_built::validators::*;
 use actix_surreal_starter_types::{RecordOf};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use surrealdb::RecordId;
+use actix_surreal_starter_types::RecordId;
 use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Deserialize, Clone)]

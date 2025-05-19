@@ -5,7 +5,7 @@ use actix_web::ResponseError;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::option::Option;
-use surrealdb::RecordId;
+use actix_surreal_starter_types::RecordId;
 use thiserror::Error;
 // OPTIMIZE: Could benefit from using pre-built queries (built during initialization of the server) for tables to not have to format the query each time at runtime.
 // OPTIMIZE: Should consider reducing String clowning where possible.
