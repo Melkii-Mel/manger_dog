@@ -106,7 +106,7 @@ macro_rules! api_entities {
                 Ok(serde_json::Value::Object(result))
             }
             #[cfg(feature = "server")]
-            async fn insert_children(mut self, user_id: actix_surreal_starter_types::UserId) -> Result<(Self, ::serde_json::map::Map<String, ::serde_json::Value>), ::actix_surreal_starter::crud_ops::CrudError> {
+            async fn insert_children(mut self, user_id: actix_surreal_starter::UserId) -> Result<(Self, ::serde_json::map::Map<String, ::serde_json::Value>), ::actix_surreal_starter::crud_ops::CrudError> {
                 let mut result = ::serde_json::Map::new();
                 $(
                 api_entities!(@parse_match_record_of $( $record_of_error, )* expr_1: {}, expr_2: {
