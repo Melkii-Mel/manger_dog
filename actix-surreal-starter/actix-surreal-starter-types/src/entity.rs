@@ -1,11 +1,11 @@
-﻿use crate::global_entities_storage;
+﻿use derive_more::Display;
+use crate::global_entities_storage;
 use serde::de::{DeserializeOwned, Error, Visitor};
 use serde::ser::SerializeTupleStruct;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
-use surrealdb::RecordId;
 
 pub trait Entity<E> {
     fn table_name() -> &'static str;
@@ -31,6 +31,29 @@ impl<T: Send + Sync + 'static> WithId<T> {
 impl<T: 'static> WithId<T> {
     pub fn register_record(self) {
         global_entities_storage::get().set(self);
+    }
+}
+
+#[derive(Debug, Display, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[serde(transparent)]
+pub struct RecordId(
+    #[cfg(feature = "wasm")]
+    Value,
+    #[cfg(not(feature = "wasm"))]
+    surrealdb::RecordId,
+);
+
+#[cfg(not(feature = "wasm"))]
+impl From<surrealdb::RecordId> for RecordId {
+    fn from(id: surrealdb::RecordId) -> Self {
+        RecordId(id)
+    }
+}
+
+#[cfg(not(feature = "wasm"))]
+impl From<RecordId> for surrealdb::RecordId {
+    fn from(value: RecordId) -> Self {
+        value.0
     }
 }
 
@@ -79,7 +102,9 @@ impl<'de, T: DeserializeOwned> Deserialize<'de> for RecordOf<T> {
     }
 }
 pub trait _ReplaceWithIds {
-    fn _replace_with_ids(self, value: &mut Value) -> Result<Self, serde_json::Error> where Self: Sized;
+    fn _replace_with_ids(self, value: &mut Value) -> Result<Self, serde_json::Error>
+    where
+        Self: Sized;
 }
 pub trait ReplaceWithIds {
     fn replace_with_ids(self, value: Value) -> Result<RecordId, serde_json::Error>;

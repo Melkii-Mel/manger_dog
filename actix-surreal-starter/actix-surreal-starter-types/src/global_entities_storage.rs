@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Mutex;
 use std::sync::{Arc, LazyLock, OnceLock};
-use surrealdb::RecordId;
+use crate::RecordId;
 
 #[cfg(feature = "wasm")]
 thread_local!(

@@ -23,12 +23,12 @@ macro_rules! api_entities {
             $(
             .route(concat!("/api/", $db_table_name, "/all"), actix_web::web::get().to(
                 |user_id: actix_surreal_starter::UserId| async move {
-                    actix_surreal_starter::crud_ops::select_all::<$name>(user_id.0, $name::query_builder()).await.map(actix_web::web::Json)
+                    actix_surreal_starter::crud_ops::select_all::<$name>(user_id.0.into(), $name::query_builder()).await.map(actix_web::web::Json)
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::get().to(
                 |id: actix_web::web::Json<::surrealdb::RecordId>, user_id: actix_surreal_starter::UserId| async move {
-                    actix_surreal_starter::crud_ops::select::<$name>(id.0, user_id.0, $name::query_builder()).await.map(actix_web::web::Json)
+                    actix_surreal_starter::crud_ops::select::<$name>(id.0.into(), user_id.0.into(), $name::query_builder()).await.map(actix_web::web::Json)
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::post().to(
@@ -54,8 +54,8 @@ macro_rules! api_entities {
                 }
             ))
             .route(concat!("/api/", $db_table_name), actix_web::web::delete().to(
-                |id: actix_web::web::Json<surrealdb::RecordId>, user_id: actix_surreal_starter::UserId| async move {
-                    actix_surreal_starter::crud_ops::delete(id.0, user_id.0, $name::query_builder()).await
+                |id: actix_web::web::Json<::surrealdb::RecordId>, user_id: actix_surreal_starter::UserId| async move {
+                    actix_surreal_starter::crud_ops::delete(id.0.into(), user_id.0.into(), $name::query_builder()).await
                 }
             ))
             )*;
@@ -91,7 +91,7 @@ macro_rules! api_entities {
                 let mut result;
                 (self, result) = self.insert_children(user_id.clone()).await?;
                 let id =
-                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0, $name::query_builder(), $name::paths()[0] == "user_id")
+                    ::actix_surreal_starter::crud_ops::insert(self, user_id.0.into(), $name::query_builder(), $name::paths()[0] == "user_id")
                         .await?;
                 result.insert("id".to_string(), ::serde_json::to_value(id)?);
                 Ok(serde_json::Value::Object(result))
@@ -102,7 +102,7 @@ macro_rules! api_entities {
                 let id = with_id.id;
                 let mut result;
                 (data, result) = data.insert_children(user_id.clone()).await?;
-                actix_surreal_starter::crud_ops::update(id, data, user_id.0, $name::query_builder()).await?;
+                actix_surreal_starter::crud_ops::update(id, data, user_id.0.into(), $name::query_builder()).await?;
                 Ok(serde_json::Value::Object(result))
             }
             async fn insert_children(mut self, user_id: actix_surreal_starter::UserId) -> Result<(Self, ::serde_json::map::Map<String, ::serde_json::Value>), ::actix_surreal_starter::crud_ops::CrudError> {
