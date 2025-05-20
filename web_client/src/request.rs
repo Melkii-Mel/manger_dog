@@ -67,6 +67,9 @@ impl Request {
     }
     pub async fn get_body(url: &str) -> Option<String> {
         Self::get_access_if_required(url).await;
+        Self::get_body_unchecked(url).await
+    }
+    pub async fn get_body_unchecked(url: &str) -> Option<String> {
         let response = RequestBuilder::new(url, GET).finish().await;
         Some(read_body(response?).await?)
     }
