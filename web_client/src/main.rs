@@ -10,6 +10,7 @@ mod refresh_request;
 mod request;
 mod utils;
 
+use crate::request::Request;
 use crate::access_handler::get_access;
 use crate::components::page::Page;
 use crate::components::sidebar::Sidebar;
@@ -19,7 +20,7 @@ use crate::config::{get_config, set_config, Config};
 use crate::i18n::translation_config;
 use crate::navigation::NavigationItem;
 use crate::navigation::NavigationItemGroup;
-use crate::request::{Request, RequestConfig};
+use crate::request::{RRequest, RequestConfig};
 use i18nrs::yew::I18nProvider;
 use web_sys::js_sys::Math::random;
 use yew::platform::spawn_local;
@@ -48,7 +49,7 @@ fn App() -> Html {
         let counter = counter.clone();
         move |_| {
             let counter = counter.clone();
-            Request::post("/increment", Some(*counter), move |res| {
+            RRequest::post("/increment".to_string(), Some(*counter), move |res| {
                 counter.set(res);
             })
         }
@@ -98,9 +99,7 @@ fn App() -> Html {
 }
 
 fn main() {
-    spawn_local(async {
-        get_access().await.unwrap();
-    });
+    console_error_panic_hook::set_once();
     spawn_local(async {
         let (routes, default_routes) = routes!(
             "/" => {
@@ -119,7 +118,7 @@ fn main() {
                 "/language" => {"En/Ru"},
             ],
         );
-        let translations_string = Request::get_body_async("/static/translations.json")
+        let translations_string = Request::get_body_unchecked("/static/translations.json")
             .await
             .unwrap();
         let config = Config {
@@ -131,6 +130,7 @@ fn main() {
             authorized_locations: &["/api/"],
         };
         set_config(config);
+        get_access().await.unwrap();
         RequestConfig::init(RequestConfig::with_default_messages());
         yew::Renderer::<AppWithConfig>::new().render();
     });

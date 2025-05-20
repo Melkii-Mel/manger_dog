@@ -22,3 +22,5 @@ derive_more = { version = "2.0.1", features = ["display"] }
 wee_alloc = "0.4.5"
 js-sys = "0.3.77"
 i18nrs = { version = "0.1.5", features = ["yew"] }
+entities = { path = "../server/entities" }
+console_error_panic_hook = "0.1"
