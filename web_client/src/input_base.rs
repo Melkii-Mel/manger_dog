@@ -9,10 +9,11 @@ use yew::{function_component, Callback, Properties};
 
 // TODO: Consider changing validation semantics. Using Options is a little confusing.
 // TODO: Consider allowing invalid inputs including invalid format to not restrict user input and instead provide error messages.
+// TODO: Add localization instead of printing error codes
 
 pub trait InputType<T> {
     fn input_component<F: Fn(Event) + 'static>(f: F) -> Html;
-    fn validate(value: &T) -> Option<String>;
+    fn validate(value: &T) -> Option<&'static str>;
 }
 
 #[derive(Properties, PartialEq)]
@@ -20,6 +21,7 @@ pub struct Props<T: PartialEq> {
     pub label: String,
     pub oninput: Callback<T>,
     pub input_requester: Callback<Callback<(), T>>,
+    pub error: Option<&'static str>,
 }
 
 #[function_component]
@@ -30,7 +32,7 @@ pub fn Input<
     props: &Props<TValue>,
 ) -> Html {
     let value_state = use_state(|| TValue::default());
-    let error = T::validate(&*value_state);
+    let error = T::validate(&*value_state).or(props.error);
     let oninput = {
         let value_state = value_state.clone();
         let oninput = props.oninput.clone();

@@ -12,7 +12,7 @@ macro_rules! generic_type {
                 $html
             }
 
-            fn validate($value: &$ty) -> Option<String> {
+            fn validate($value: &$ty) -> Option<&'static str> {
                 $validate
             }
         }
