@@ -2,7 +2,7 @@
 members = [
     "actix-surreal-starter",
     "actix-surreal-starter/actix-surreal-starter-macros", "actix-surreal-starter/actix-surreal-starter-types",
-    "actix-surreal-starter/actix-surreal-starter-types/proc_macros",
+    "actix-surreal-starter/proc_macros",
     "server", "utils",
     "web_client", "zola-watcher",
 ]
