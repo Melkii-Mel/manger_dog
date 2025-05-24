@@ -2,8 +2,10 @@ use crate::pre_built::regexes;
 use actix_surreal_starter_macros::{impl_display_for_error, impl_validators};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use proc_macros::ErrorEnum;
 
-#[derive(Debug, Error, Clone, Serialize, Deserialize)]
+#[derive(Debug, Error, Clone, Serialize, Deserialize, ErrorEnum)]
+#[trait_crate = "crate"]
 pub enum ValidationError {
     StringIsEmpty,
     StringTooShort,
