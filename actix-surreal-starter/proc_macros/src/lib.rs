@@ -8,7 +8,7 @@ pub fn error_type(attr: TokenStream, item: TokenStream) -> TokenStream {
     error_type::error_type(attr, item)
 }
 
-#[proc_macro_derive(ErrorEnum)]
+#[proc_macro_derive(ErrorEnum, attributes(trait_crate))]
 pub fn error_enum(attr: TokenStream) -> TokenStream {
     error_enum::error_enum(attr)
 }
