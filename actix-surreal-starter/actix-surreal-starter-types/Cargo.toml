@@ -9,6 +9,7 @@ serde = { version = "1.0.219", features = ["serde_derive"] }
 surrealdb = { version = "2.2.2", optional = true }
 regex = "1.11.1"
 actix-surreal-starter-macros = { path = "../actix-surreal-starter-macros" }
+proc_macros = { path = "../proc_macros" }
 thiserror = "2.0.12"
 serde_json = "1.0.140"
 derive_more = { version = "2.0.1", features = ["display"] }

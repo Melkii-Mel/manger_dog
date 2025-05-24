@@ -7,8 +7,9 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use actix_surreal_starter_types::RecordId;
 use thiserror::Error;
+use actix_surreal_starter_types::ErrorEnum;
 
-#[derive(Debug, Error, Serialize, Deserialize, Clone)]
+#[derive(Debug, Error, Serialize, Deserialize, Clone, ErrorEnum)]
 pub enum ApiValidationError {
     DefaultError(#[from] ValidationError),
 }

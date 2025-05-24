@@ -135,3 +135,7 @@ impl_replace_with_ids!();
 
 #[cfg(feature = "server")]
 impl_replace_with_ids!(Send | Sync);
+
+pub trait ErrorEnum {
+    fn as_dot_path(&self) -> String;
+}

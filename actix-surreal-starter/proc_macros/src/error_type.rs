@@ -2,7 +2,6 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, ItemEnum, Meta, Path};
 
-#[proc_macro_attribute]
 pub fn error_type(attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut input = parse_macro_input!(item as ItemEnum);
     let enum_name = &input.ident;
