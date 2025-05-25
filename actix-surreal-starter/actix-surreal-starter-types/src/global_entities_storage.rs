@@ -1,3 +1,4 @@
+use crate::RecordId;
 use crate::WithId;
 use std::any::Any;
 use std::any::TypeId;
@@ -6,7 +7,6 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Mutex;
 use std::sync::{Arc, LazyLock, OnceLock};
-use crate::RecordId;
 
 #[cfg(not(feature = "server"))]
 thread_local!(
@@ -123,6 +123,45 @@ impl GlobalStorage {
                 .downcast::<T>()
                 .expect("Failed to downcast a type upon retrieval"),
         )
+    }
+
+    #[cfg(not(feature = "server"))]
+    pub fn get_all<T: Send + Sync + 'static>(&self) -> Vec<WithId<Rc<T>>> {
+        self.inner
+            .borrow_mut()
+            .get_mut(&TypeId::of::<T>())
+            .map(|map| {
+                map.iter()
+                    .map(|(k, v)| WithId {
+                        id: k.clone(),
+                        data: v
+                            .clone()
+                            .downcast::<T>()
+                            .expect("Failed to downcast a type upon retrieval"),
+                    })
+                    .collect()
+            })
+            .unwrap_or(vec![])
+    }
+    
+    #[cfg(feature = "server")]
+    pub fn get_all<T: Send + Sync + 'static>(&self) -> Vec<WithId<Arc<T>>> {
+        self.inner
+            .lock()
+            .unwrap()
+            .get(&TypeId::of::<T>())
+            .map(|map| {
+                map.iter()
+                    .map(|(k, v)| WithId {
+                        id: k.clone(),
+                        data: v
+                            .clone()
+                            .downcast::<T>()
+                            .expect("Failed to downcast a type upon retrieval"),
+                    })
+                    .collect()
+            })
+            .unwrap_or(vec![])
     }
 
     #[cfg(not(feature = "server"))]
