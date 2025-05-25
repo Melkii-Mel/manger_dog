@@ -126,7 +126,7 @@ impl GlobalStorage {
     }
 
     #[cfg(not(feature = "server"))]
-    pub fn get_all<T: Send + Sync + 'static>(&self) -> Vec<WithId<Rc<T>>> {
+    pub fn get_all<T: 'static>(&self) -> Vec<WithId<Rc<T>>> {
         self.inner
             .borrow_mut()
             .get_mut(&TypeId::of::<T>())
