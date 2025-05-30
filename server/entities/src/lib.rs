@@ -78,7 +78,7 @@ api_entities!(
         currency_id: RecordId,
         start_date: DateTime<Utc> [v1_gt_v2(end_date)],
         end_date: DateTime<Utc>,
-        target_income: i64 [gt_zero],
+        target_income: u64,
         metadata_id: RecordOf<Metadata>,
     }
 
@@ -92,8 +92,8 @@ api_entities!(
     Transfer|TransferError("transfers" ["account_from.user_id", "metadata_id.user_id"]) {
         account_from: RecordOf<Account>,
         account_to: RecordOf<Account>,
-        amount_from: i64 [gt_zero],
-        amount_to: i64 [gt_zero],
+        amount_from: u64,
+        amount_to: u64,
         conversion_rate: f64 [gt_zero],
         fee: f64 [gt_zero],
         metadata_id: RecordOf<Metadata>,
@@ -115,7 +115,7 @@ api_entities!(
 
     Loan|LoanError("loans" ["user_id", "metadata_id.user_id"]) {
         currency_id: RecordId,
-        principal_amount: i64 [gt_zero],
+        principal_amount: u64,
         interest_rate: f64 [gt_zero],
         start_date: DateTime<Utc> [optional_v2_gt_v1(end_date)],
         end_date: Option<DateTime<Utc>>,
@@ -133,7 +133,7 @@ api_entities!(
         currency_id: RecordId,
         r#type: String,
         compounding_frequency: String,
-        principal_amount: i64 [gt_zero],
+        principal_amount: u64,
         start_date: DateTime<Utc> [optional_v2_gt_v1(expected_end_date), optional_v2_gt_v1(end_date)],
         expected_end_date: Option<DateTime<Utc>> ,
         end_date: Option<DateTime<Utc>>,
@@ -198,7 +198,7 @@ api_entities!(
         financial_goal_id: RecordOf<FinancialGoal>,
         account_id: Option<RecordOf<Account>>,
         date: DateTime<Utc>,
-        amount: i64 [gt_zero],
+        amount: u64,
         metadata_id: RecordOf<Metadata>,
     }
 );
