@@ -1,6 +1,6 @@
 #[cfg(feature = "actix-surreal-starter")]
 use actix_surreal_starter::LoginData;
-use actix_surreal_starter_macros::{api_entities, impl_display_for_error};
+use actix_surreal_starter_macros::{api_entities, enums, impl_display_for_error};
 use actix_surreal_starter_types::pre_built::validators::*;
 use actix_surreal_starter_types::{RecordOf};
 use chrono::{DateTime, Utc};
@@ -202,6 +202,17 @@ api_entities!(
         metadata_id: RecordOf<Metadata>,
     }
 );
+
+enums! {
+    GroupRoles("group_roles"),                          // 'owner', 'member', 'readonly'
+    InterestRateTypes("interest_rate_types"),           // 'simple', 'compound'
+    CompoundingFrequencies("compounding_frequencies"),  // 'annually', 'semi_annually', 'quarterly', 'monthly', 'daily'
+    InvestmentTypes("investment_types"),                // 'stocks', 'bonds', 'real_estate', 'mutual_funds', 'etfs', 'cryptocurrency', 'precious_metals', 'commodities', 'p2p_lending'
+    RiskLevels("risk_levels"),                          // 'low', 'moderate', 'high', 'very_high'
+    Currencies("currencies"),                           // 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'BRL', 'BTC', 'ETH', 'USDT', 'USDC', 'RUB'
+    Languages("languages"),                             // 'EN', 'RU'
+}
+
 
 #[cfg(feature = "actix-surreal-starter")]
 impl LoginData for Register {

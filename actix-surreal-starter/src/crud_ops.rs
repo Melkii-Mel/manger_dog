@@ -1,11 +1,13 @@
 use crate::query_builder::{BuilderError, QueryBuilder};
 use crate::WithId;
 use crate::DB;
+use actix_surreal_starter_types::RecordId;
 use actix_web::ResponseError;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use std::fmt::format;
 use std::option::Option;
-use actix_surreal_starter_types::RecordId;
+use surrealdb::opt::IntoQuery;
 use thiserror::Error;
 // OPTIMIZE: Could benefit from using pre-built queries (built during initialization of the server) for tables to not have to format the query each time at runtime.
 // OPTIMIZE: Should consider reducing String clowning where possible.
@@ -74,6 +76,17 @@ pub async fn select<T: DeserializeOwned>(
         .ok_or(CrudError::MissingRecord(id.clone()))?)
 }
 
+pub async fn select_raw_by_id<T: DeserializeOwned>(
+    id: RecordId,
+) -> Result<T, CrudError> {
+    Ok(DB
+        .query("SELECT * FROM $id")
+        .bind(("id", id.clone()))
+        .await?
+        .take::<Option<T>>(0)?
+        .ok_or(CrudError::MissingRecord(id.clone()))?)
+}
+
 pub async fn select_all<T: DeserializeOwned>(
     user_id: RecordId,
     query_builder: QueryBuilder,
@@ -83,6 +96,12 @@ pub async fn select_all<T: DeserializeOwned>(
         .bind(user_id)
         .await?
         .take::<Vec<WithId<T>>>(0)?)
+}
+
+pub async fn select_all_raw<T: DeserializeOwned>(
+    query: impl IntoQuery,
+) -> Result<Vec<WithId<T>>, CrudError> {
+    Ok(DB.query(query).await?.take::<Vec<WithId<T>>>(0)?)
 }
 
 pub async fn update(
