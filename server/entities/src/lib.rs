@@ -204,13 +204,13 @@ api_entities!(
 );
 
 enums! {
-    GroupRoles("group_roles"),                          // 'owner', 'member', 'readonly'
-    InterestRateTypes("interest_rate_types"),           // 'simple', 'compound'
-    CompoundingFrequencies("compounding_frequencies"),  // 'annually', 'semi_annually', 'quarterly', 'monthly', 'daily'
-    InvestmentTypes("investment_types"),                // 'stocks', 'bonds', 'real_estate', 'mutual_funds', 'etfs', 'cryptocurrency', 'precious_metals', 'commodities', 'p2p_lending'
-    RiskLevels("risk_levels"),                          // 'low', 'moderate', 'high', 'very_high'
-    Currencies("currencies"),                           // 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'BRL', 'BTC', 'ETH', 'USDT', 'USDC', 'RUB'
-    Languages("languages"),                             // 'EN', 'RU'
+    GroupRole("group_roles"),                           // 'owner', 'member', 'readonly'
+    InterestRateType("interest_rate_types"),            // 'simple', 'compound'
+    CompoundingFrequency("compounding_frequencies"),    // 'annually', 'semi_annually', 'quarterly', 'monthly', 'daily'
+    InvestmentType("investment_types"),                 // 'stocks', 'bonds', 'real_estate', 'mutual_funds', 'etfs', 'cryptocurrency', 'precious_metals', 'commodities', 'p2p_lending'
+    RiskLevel("risk_levels"),                           // 'low', 'moderate', 'high', 'very_high'
+    Currency("currencies"),                             // 'USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'INR', 'BRL', 'BTC', 'ETH', 'USDT', 'USDC', 'RUB'
+    Language("languages"),                              // 'EN', 'RU'
 }
 
 

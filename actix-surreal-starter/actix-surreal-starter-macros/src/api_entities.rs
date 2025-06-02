@@ -216,7 +216,7 @@ macro_rules! enums {
         $(
         #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
         pub struct $name {
-            identifier: String,
+            pub identifier: String,
         }
         impl ::actix_surreal_starter_types::Entity<()> for $name {
             fn table_name() -> &'static str {
