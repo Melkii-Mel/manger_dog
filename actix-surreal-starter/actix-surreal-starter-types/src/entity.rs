@@ -7,10 +7,11 @@ use serde_json::Value;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 
-pub trait Entity<E> {
+pub trait Entity {
+    type Error;
     fn table_name() -> &'static str;
     fn api_location() -> &'static str;
-    fn validate(&self) -> Result<(), E>;
+    fn validate(&self) -> Result<(), Self::Error>;
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
