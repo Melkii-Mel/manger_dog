@@ -62,11 +62,11 @@ macro_rules! api_entities {
         }
 
         $(
-        #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
+        #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq)]
         pub struct $name {
             $(pub $field: api_entities!(@parse_type $type)),*
         }
-        #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
+        #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq)]
         pub struct $name_error {
             $(pub $field: api_entities!(@parse_error_type $validation_error_type $(, $record_of_error )? )),*
         }
@@ -215,7 +215,7 @@ macro_rules! enums {
             )*;
         }
         $(
-        #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone)]
+        #[derive(std::fmt::Debug, serde::Deserialize, serde::Serialize, Clone, PartialEq)]
         pub struct $name {
             pub identifier: String,
         }

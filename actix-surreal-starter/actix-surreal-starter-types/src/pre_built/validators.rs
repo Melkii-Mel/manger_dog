@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use proc_macros::ErrorEnum;
 
-#[derive(Debug, Error, Clone, Serialize, Deserialize, ErrorEnum)]
+#[derive(Debug, Error, Clone, Serialize, Deserialize, ErrorEnum, PartialEq)]
 #[trait_crate = "crate"]
 pub enum ValidationError {
     StringIsEmpty,
