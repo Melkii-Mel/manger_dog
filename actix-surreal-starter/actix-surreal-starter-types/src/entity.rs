@@ -58,7 +58,7 @@ impl From<RecordId> for surrealdb::RecordId {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum RecordOf<T> {
     Id(RecordId),
     Record(T),

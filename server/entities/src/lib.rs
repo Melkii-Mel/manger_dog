@@ -9,7 +9,7 @@ use actix_surreal_starter_types::RecordId;
 use thiserror::Error;
 use actix_surreal_starter_types::ErrorEnum;
 
-#[derive(Debug, Error, Serialize, Deserialize, Clone, ErrorEnum)]
+#[derive(Debug, Error, Serialize, Deserialize, Clone, ErrorEnum, PartialEq)]
 pub enum ApiValidationError {
     DefaultError(#[from] ValidationError),
 }
