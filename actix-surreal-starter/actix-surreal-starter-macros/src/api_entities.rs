@@ -120,7 +120,8 @@ macro_rules! api_entities {
                 Ok((self, result))
             }
         }
-        impl ::actix_surreal_starter_types::Entity<$name_error> for $name {
+        impl ::actix_surreal_starter_types::Entity for $name {
+            type Error = $name_error;
             fn table_name() -> &'static str {
                 $db_table_name
             }
@@ -218,7 +219,8 @@ macro_rules! enums {
         pub struct $name {
             pub identifier: String,
         }
-        impl ::actix_surreal_starter_types::Entity<()> for $name {
+        impl ::actix_surreal_starter_types::Entity for $name {
+            type Error = ();
             fn table_name() -> &'static str {
                 $table_name
             }
