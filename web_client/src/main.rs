@@ -1,3 +1,5 @@
+#![feature(try_trait_v2)]
+
 mod access_handler;
 mod components;
 mod hooks;
@@ -9,6 +11,10 @@ mod not_found;
 mod refresh_request;
 mod request;
 mod utils;
+mod form_input;
+mod parsing;
+mod enums;
+mod global_storage;
 
 use crate::request::Request;
 use crate::access_handler::get_access;
