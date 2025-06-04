@@ -73,37 +73,37 @@ impl Request {
         let response = RequestBuilder::new(url, GET).finish().await;
         Some(read_body(response?).await?)
     }
-    pub async fn post<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+    pub async fn post<T: Serialize, R: DeserializeOwned + Debug + 'static>(
         url: String,
         data: T,
     ) -> Option<R> {
         Self::write(url, data, POST).await
     }
-    pub async fn put<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+    pub async fn put<T: Serialize, R: DeserializeOwned + Debug>(
         url: String,
         data: T,
     ) -> Option<R> {
         Self::write(url, data, PUT).await
     }
-    pub async fn patch<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+    pub async fn patch<T: Serialize, R: DeserializeOwned + Debug>(
         url: String,
         data: T,
     ) -> Option<R> {
         Self::write(url, data, PATCH).await
     }
-    pub async fn delete<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+    pub async fn delete<T: Serialize, R: DeserializeOwned + Debug>(
         url: String,
         data: T,
     ) -> Option<R> {
         Self::write(url, data, DELETE).await
     }
-    async fn write<T: Serialize + 'static, R: DeserializeOwned + Debug>(
+    async fn write<T: Serialize, R: DeserializeOwned + Debug>(
         url: String,
         data: T,
         method: Method,
     ) -> Option<R> {
         Self::get_access_if_required(&url).await;
-        Self::_generic_json_request(method, url, data).await
+        Self::_generic_json_request_with_serialization(method, url, data).await
     }
     async fn _generic_request_with_client_result_response<F, R, T>(
         url: &str,
@@ -131,16 +131,22 @@ impl Request {
         }
         None
     }
-    async fn _generic_json_request<T, R>(method: Method, url: String, value: T) -> Option<R>
+    async fn _generic_json_request_with_serialization<T, R>(method: Method, url: String, value: T) -> Option<R>
     where
-        T: Serialize + 'static,
+        T: Serialize,
         R: DeserializeOwned + Debug,
     {
-        let value = Rc::new(value);
+        let value = serde_wasm_bindgen::to_value(&value).unwrap();
+        Self::_generic_json_request(method, url, value).await
+    }
+    async fn _generic_json_request<R>(method: Method, url: String, value: JsValue) -> Option<R>
+    where
+        R: DeserializeOwned + Debug,
+    {
         let url = Rc::new(url);
         let requester = {
             let url = url.clone();
-            move || RequestBuilder::new(&url, method.clone()).json(value.clone())
+            move || RequestBuilder::new(&url, method.clone()).json_serialized(value.clone())
         };
         Self::_generic_request_with_client_result_response::<_, _, R>(&url, requester).await
     }
@@ -174,49 +180,46 @@ impl RRequest {
             }
         })
     }
-    pub fn post<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+    pub fn post<T: Serialize, R: DeserializeOwned + Debug + 'static, F: FnOnce(R) + 'static>(
         url: String,
         data: T,
         callback: F,
     ) {
-        spawn_local(async move {
-            if let Some(client_result) = Request::post(url, data).await {
-                callback(client_result)
-            }
-        });
+        Self::_write(url, data, POST, callback);
     }
-    pub fn put<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+    pub fn put<T: Serialize, R: DeserializeOwned + Debug + 'static, F: FnOnce(R) + 'static>(
         url: String,
         data: T,
         callback: F,
     ) {
-        spawn_local(async move {
-            if let Some(client_result) = Request::put(url, data).await {
-                callback(client_result)
-            }
-        });
+        Self::_write(url, data, PUT, callback);
     }
-    pub fn patch<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+    pub fn patch<T: Serialize, R: DeserializeOwned + Debug + 'static, F: FnOnce(R) + 'static>(
         url: String,
         data: T,
         callback: F,
     ) {
-        spawn_local(async move {
-            if let Some(client_result) = Request::patch(url, data).await {
-                callback(client_result)
-            }
-        });
+        Self::_write(url, data, PATCH, callback);
     }
-    pub fn delete<T: Serialize + 'static, R: DeserializeOwned + Debug, F: FnOnce(R) + 'static>(
+    pub fn delete<T: Serialize, R: DeserializeOwned + Debug + 'static, F: FnOnce(R) + 'static>(
         url: String,
         data: T,
         callback: F,
     ) {
+        Self::_write(url, data, DELETE, callback);
+    }
+    fn _write<T: Serialize, R: DeserializeOwned + Debug + 'static, F: FnOnce(R) + 'static>(
+        url: String,
+        data: T,
+        method: Method,
+        callback: F,
+    ) {
+        let serialized = serde_wasm_bindgen::to_value(&data).unwrap();
         spawn_local(async move {
-            if let Some(client_result) = Request::delete(url, data).await {
-                callback(client_result)
+            if let Some(result) = Request::_generic_json_request(method, url, serialized).await {
+                callback(result)
             }
-        });
+        })
     }
 }
 
@@ -260,8 +263,11 @@ impl RequestBuilder {
         let serialized = serde_json::to_string(&json)
             .inspect_err(|e| log!("Failed to set the Json: {e}"))
             .ok()?;
+        self.json_serialized(serialized).await
+    }
+    async fn json_serialized<T: Into<JsValue> + Debug>(self, serialized: T) -> Option<Response> {
         if let Some(message) = get_request_config().request_data_message {
-            log!("{message}{}", &serialized)
+            log!("{message}{:?}", &serialized)
         }
         Some(Self::_result_to_option(
             self.rb
