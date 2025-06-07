@@ -1,2 +1,4 @@
 ﻿[profile.release]
 opt-level = "s"
+[build]
+rustflags = ["-Zmacro-backtrace"]
