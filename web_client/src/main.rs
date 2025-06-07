@@ -1,31 +1,31 @@
 #![feature(try_trait_v2)]
 
 mod access_handler;
-mod components;
-mod hooks;
 mod bindings;
+mod components;
 mod config;
+mod enums;
+mod form_input;
+mod global_storage;
+mod hooks;
 mod i18n;
 mod navigation;
 mod not_found;
+mod parsing;
 mod refresh_request;
 mod request;
 mod utils;
-mod form_input;
-mod parsing;
-mod enums;
-mod global_storage;
 
-use crate::request::Request;
 use crate::access_handler::get_access;
 use crate::components::page::Page;
 use crate::components::sidebar::Sidebar;
 use crate::components::sidebar_nav_item_content::SidebarNavItemContent;
-use crate::hooks::use_translation::use_t;
 use crate::config::{get_config, set_config, Config};
+use crate::hooks::use_translation::use_t;
 use crate::i18n::translation_config;
 use crate::navigation::NavigationItem;
 use crate::navigation::NavigationItemGroup;
+use crate::request::Request;
 use crate::request::{RRequest, RequestConfig};
 use i18nrs::yew::I18nProvider;
 use web_sys::js_sys::Math::random;

@@ -75,7 +75,7 @@ impl<T> InputResult<T> {
     pub fn ok(self) -> Option<T> {
         match self {
             InputResult::Ok(v) => Some(v),
-            _ => None
+            _ => None,
         }
     }
 }

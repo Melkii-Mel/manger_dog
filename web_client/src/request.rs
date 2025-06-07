@@ -79,10 +79,7 @@ impl Request {
     ) -> Option<R> {
         Self::write(url, data, POST).await
     }
-    pub async fn put<T: Serialize, R: DeserializeOwned + Debug>(
-        url: String,
-        data: T,
-    ) -> Option<R> {
+    pub async fn put<T: Serialize, R: DeserializeOwned + Debug>(url: String, data: T) -> Option<R> {
         Self::write(url, data, PUT).await
     }
     pub async fn patch<T: Serialize, R: DeserializeOwned + Debug>(
@@ -131,7 +128,11 @@ impl Request {
         }
         None
     }
-    async fn _generic_json_request_with_serialization<T, R>(method: Method, url: String, value: T) -> Option<R>
+    async fn _generic_json_request_with_serialization<T, R>(
+        method: Method,
+        url: String,
+        value: T,
+    ) -> Option<R>
     where
         T: Serialize,
         R: DeserializeOwned + Debug,

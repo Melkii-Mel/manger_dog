@@ -63,9 +63,12 @@ pub fn parse_number(input: &str) -> Result<(i64, i64, usize), RawNumberParseErro
     let (frac, frac_len) = match parts.get(1) {
         Some(&digits) => {
             let padded = format!("{:0<1}", digits);
-            (padded
-                .parse::<i64>()
-                .map_err(|_| RawNumberParseError::FracTooLarge)?, padded.len())
+            (
+                padded
+                    .parse::<i64>()
+                    .map_err(|_| RawNumberParseError::FracTooLarge)?,
+                padded.len(),
+            )
         }
         None => (0, 0usize),
     };
@@ -75,7 +78,7 @@ pub fn parse_number(input: &str) -> Result<(i64, i64, usize), RawNumberParseErro
             .parse::<i64>()
             .map_err(|_| RawNumberParseError::WholeTooLarge)?,
         sign * frac,
-        frac_len
+        frac_len,
     ))
 }
 

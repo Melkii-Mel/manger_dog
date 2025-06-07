@@ -5,14 +5,20 @@ use yew::{function_component, html, Html, Properties};
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    pub children: Html
+    pub children: Html,
 }
 #[function_component]
 pub fn Sidebar(props: &Props) -> Html {
     let sidebar_toggle_click = |mouse_event: MouseEvent| {
         let target = mouse_event.target().unwrap();
         let element = target.dyn_ref::<Element>().unwrap().to_owned();
-        element.closest(".sidebar").unwrap().unwrap().class_list().toggle("collapsed").ok();
+        element
+            .closest(".sidebar")
+            .unwrap()
+            .unwrap()
+            .class_list()
+            .toggle("collapsed")
+            .ok();
     };
     html!(
         <div class="sidebar">

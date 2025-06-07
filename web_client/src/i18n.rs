@@ -1,4 +1,4 @@
-﻿use i18nrs::yew::I18nProviderConfig;
+use i18nrs::yew::I18nProviderConfig;
 use std::collections::HashMap;
 use yew::Callback;
 
@@ -8,9 +8,7 @@ pub fn translation_config(translations_string: &str, default_language: &str) -> 
     I18nProviderConfig {
         translations: string_to_map(translations_string),
         default_language: default_language.to_string(),
-        onerror: Callback::from(|e| {
-            
-        }),
+        onerror: Callback::from(|e| {}),
         ..I18nProviderConfig::default()
     }
 }

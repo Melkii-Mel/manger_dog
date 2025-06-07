@@ -1,9 +1,9 @@
-use crate::parsing::{parse_int, parse_money};
 use crate::form_input::form::HtmlInputs;
 use crate::form_input::generic_input::InputType;
 use crate::form_input::input_result::InputResult;
 use crate::global_storage;
 use crate::hooks::use_translation::use_t;
+use crate::parsing::{parse_int, parse_money};
 use actix_surreal_starter_types::RecordOf;
 use actix_surreal_starter_types::{Entity, RecordId};
 use chrono::{DateTime, Timelike, Utc};
@@ -100,8 +100,6 @@ macro_rules! generic_type {
     };
 }
 
-// TODO: Change string parsing api to InputResult<Ok(v), Err, Incomplete, Empty>
-
 generic_type!(Number<i64> {
     |oninput| html! { <input type="number" oninput={oninput}/> },
     |string| parse_int(&string).into(),
@@ -183,10 +181,18 @@ impl<
 {
     type T = ::actix_surreal_starter_types::RecordId;
 
-    fn input_component<F: Fn(web_client::form_input::input_result::InputResult<Self::T>) + 'static>(f: F) -> Html {
+    fn input_component<
+        F: Fn(web_client::form_input::input_result::InputResult<Self::T>) + 'static,
+    >(
+        f: F,
+    ) -> Html {
         #[derive(Properties, PartialEq)]
         struct Props {
-            f: Callback<web_client::form_input::input_result::InputResult<::actix_surreal_starter_types::RecordId>>,
+            f: Callback<
+                web_client::form_input::input_result::InputResult<
+                    ::actix_surreal_starter_types::RecordId,
+                >,
+            >,
         }
         #[function_component]
         fn C<

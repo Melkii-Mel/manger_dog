@@ -1,7 +1,7 @@
 //! Generic input system.
 //!
 //! # Components
-//! - `GenericInput<T: InputType>`: A generic wrapper for input components. 
+//! - `GenericInput<T: InputType>`: A generic wrapper for input components.
 //! - Concrete Inputs: Implement `InputType` to provide typed input handling.
 //! - Form: Composes multiple `GenericInput` fields and handles validation.
 //! # Errors
@@ -18,9 +18,9 @@
 //! ## Form level
 //! - GenericInput accepts `error` in props for an entity-level validation
 //! - The form should provide this error in case input is invalid
-//! 
+//!
 
 pub mod form;
-pub mod inputs;
 pub mod generic_input;
 pub mod input_result;
+pub mod inputs;

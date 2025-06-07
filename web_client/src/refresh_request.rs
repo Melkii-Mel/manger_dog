@@ -1,20 +1,19 @@
 use crate::bindings::{set_location_href, DomInteractionError};
 use actix_surreal_starter_types::ClientUnitResult;
+use derive_more::Display;
 use futures::future::LocalBoxFuture;
 use futures::future::Shared;
 use futures::FutureExt;
 use gloo_net::http::Request;
+use gloo_net::Error;
 use std::cell::{OnceCell, RefCell};
 use std::rc::Rc;
-use derive_more::Display;
-use gloo_net::Error;
 use thiserror::Error;
-use web_sys::{RequestCredentials};
+use web_sys::RequestCredentials;
 
 #[derive(Debug, Error, Clone, Display)]
 pub enum RefreshError {
     GlooNet(String),
-    
 }
 
 impl From<gloo_net::Error> for RefreshError {

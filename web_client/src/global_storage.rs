@@ -1,7 +1,7 @@
 use crate::request::Request;
 use actix_surreal_starter_types::global_entities_storage::GlobalStorage;
-use actix_surreal_starter_types::{Entity, RecordId};
 use actix_surreal_starter_types::WithId;
+use actix_surreal_starter_types::{Entity, RecordId};
 use serde::de::DeserializeOwned;
 use std::any::TypeId;
 use std::cell::RefCell;
@@ -23,12 +23,16 @@ pub async fn get<T: Entity + DeserializeOwned + Debug + 'static>(id: &RecordId) 
     storage().get(&id)
 }
 
-pub async fn set<T: Entity + DeserializeOwned + Debug + 'static>(record: WithId<T>) -> Option<Rc<T>> {
+pub async fn set<T: Entity + DeserializeOwned + Debug + 'static>(
+    record: WithId<T>,
+) -> Option<Rc<T>> {
     init_if_required::<T>().await;
     storage().set(record)
 }
 
-pub async fn delete<T: Entity + DeserializeOwned + Debug + 'static>(id: &RecordId) -> Option<Rc<T>> {
+pub async fn delete<T: Entity + DeserializeOwned + Debug + 'static>(
+    id: &RecordId,
+) -> Option<Rc<T>> {
     init_if_required::<T>().await;
     storage().delete(id)
 }

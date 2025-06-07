@@ -1,3 +1,3 @@
 pub mod page;
-pub mod sidebar_nav_item_content;
 pub mod sidebar;
+pub mod sidebar_nav_item_content;
