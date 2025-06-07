@@ -1,3 +1,5 @@
+use crate::form_input::inputs::TextMultiline;
+use web_client_proc_macros::forms;
 use crate::form_input::generic_input;
 use crate::form_input::generic_input::InputType;
 use crate::form_input::input_result::InputResult;
@@ -10,7 +12,7 @@ use crate::request::Request;
 use actix_surreal_starter_types::{Entity, ErrorEnum};
 use actix_surreal_starter_types::{RecordId, WithId};
 use entities::Currency;
-use entities::{ApiValidationError, FinancialGoal, Metadata};
+use entities::{FinancialGoal, Metadata};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 use std::fmt::Debug;
@@ -18,18 +20,18 @@ use yew::platform::spawn_local;
 use yew::Html;
 use yew::{function_component, html, use_state, Callback, Properties};
 
-// forms! {
-//     FinancialGoal {
-//         currency_id: Selector<Currency>,
-//         (start_date, end_date): DateSpan,
-//         target_income: MoneyPositive,
-//         metadata_id: SubInput<Metadata>,
-//     }
-//     Metadata {
-//         title: Text?,
-//         description: TextMultiline?,
-//     }
-// }
+forms! {
+    FinancialGoal {
+        currency_id: Selector<Currency>,
+        (start_date, end_date): DateSpan,
+        target_income: MoneyPositive,
+        metadata_id: SubInput<Metadata>,
+    }
+    Metadata {
+        title: Text?,
+        description: TextMultiline?,
+    }
+}
 
 #[derive(Properties, PartialEq)]
 struct HtmlInputsProps<T: Entity + PartialEq>
@@ -51,169 +53,6 @@ pub trait HtmlInputs: Entity {
 pub enum Mode {
     Insert,
     Update(RecordId),
-}
-
-impl HtmlInputs for FinancialGoal {
-    fn html_inputs(
-        on_entity_update: Callback<InputResult<Self>>,
-        on_errors_update: Callback<Option<Self::Error>>,
-    ) -> Html
-    where
-        Self: Sized,
-    {
-        #[function_component]
-        fn Inputs(props: &HtmlInputsProps<FinancialGoal>) -> Html {
-            // TODO: Add optional fields support
-            let currency_id =
-                use_state(|| InputResult::<<Selector<Currency> as InputType>::T>::Empty);
-            let __start_date_end_date =
-                use_state(|| InputResult::<<DateSpan as InputType>::T>::Empty);
-            let target_income = use_state(|| InputResult::<<MoneyPositive as InputType>::T>::Empty);
-            let metadata_id =
-                use_state(|| InputResult::<<SubInput<Metadata> as InputType>::T>::Empty);
-            let entity = (|| {
-                InputResult::Ok(FinancialGoal {
-                    currency_id: (*currency_id).clone()?,
-                    start_date: (*__start_date_end_date).clone()?.0,
-                    end_date: (*__start_date_end_date).clone()?.1,
-                    target_income: (*target_income).clone()?,
-                    metadata_id: (*metadata_id).clone()?,
-                })
-            })();
-            props.on_entity_update.emit(entity.clone());
-            let errors = Option::<FinancialGoal>::from(entity)
-                .as_ref()
-                .map(|e| actix_surreal_starter_types::Entity::validate(e).err())
-                .flatten();
-            props.on_errors_update.emit(errors.clone());
-
-            macro_rules! error {
-                ($($ident:ident),*) => {
-                    'block: {
-                        if let Some(ref errors) = errors {
-                            $(
-                                if let Some(first_error) = errors.$ident.get(0) {
-                                    break 'block Err(std::rc::Rc::from(first_error.as_dot_path().into_boxed_str()));
-                                }
-                            )*
-                        }
-                        Ok(())
-                    }
-                };
-            }
-
-            macro_rules! set {
-                ($ident:ident) => {{
-                    let $ident = $ident.clone();
-                    move |v| {
-                        $ident.set(v);
-                    }
-                }};
-            }
-
-            html!(
-                <div>
-                    <generic_input::GenericInput<Selector<Currency>>
-                        label="todo"
-                        oninput={set!(currency_id)}
-                        error={error!(currency_id)}
-                    />
-                    <generic_input::GenericInput<DateSpan>
-                        label="todo"
-                        oninput={set!(__start_date_end_date)}
-                        error={error!(start_date, end_date)}
-                    />
-                    <generic_input::GenericInput<MoneyPositive>
-                        label="todo"
-                        oninput={set!(target_income)}
-                        error={error!(target_income)}
-                    />
-                    <generic_input::GenericInput<SubInput<Metadata>>
-                        label="todo"
-                        oninput={set!(metadata_id)}
-                        error={error!(metadata_id)}
-                    />
-                </div>
-            )
-        }
-
-        html! {
-            <Inputs on_entity_update={on_entity_update} on_errors_update={on_errors_update}/>
-        }
-    }
-}
-
-impl HtmlInputs for Metadata {
-    fn html_inputs(
-        on_entity_update: Callback<InputResult<Self>>,
-        on_errors_update: Callback<Option<Self::Error>>,
-    ) -> Html
-    where
-        Self: Sized,
-    {
-        #[function_component]
-        fn Inputs(props: &HtmlInputsProps<Metadata>) -> Html {
-            // TODO: Add optional fields support
-            let title = use_state(|| InputResult::<<Text as InputType>::T>::Empty);
-            let description = use_state(|| InputResult::<<Text as InputType>::T>::Empty);
-            let entity = (|| {
-                InputResult::Ok(Metadata {
-                    title: (*title).clone().option()?,
-                    description: (*description).clone().option()?,
-                })
-            })();
-            props.on_entity_update.emit(entity.clone());
-            let errors = entity
-                .ok()
-                .as_ref()
-                .map(|e| actix_surreal_starter_types::Entity::validate(e).err())
-                .flatten();
-            props.on_errors_update.emit(errors.clone());
-
-            macro_rules! error {
-                ($($ident:ident),*) => {
-                    'block: {
-                        if let Some(ref errors) = errors {
-                            $(
-                                if let Some(first_error) = errors.$ident.get(0) {
-                                    break 'block Err(std::rc::Rc::from(first_error.as_dot_path().into_boxed_str()));
-                                }
-                            )*
-                        }
-                        Ok(())
-                    }
-                };
-            }
-
-            macro_rules! set {
-                ($ident:ident) => {{
-                    let $ident = $ident.clone();
-                    move |v| {
-                        $ident.set(v);
-                    }
-                }};
-            }
-
-            html!(
-                <div>
-                    <generic_input::GenericInput<Text>
-                        label="todo"
-                        oninput={set!(title)}
-                        error={error!(title)}
-                    />
-                    <generic_input::GenericInput<Text>
-                        label="todo"
-                        oninput={set!(description)}
-                        error={error!(description)}
-                    />
-                </div>
-            )
-        }
-
-        html! {
-            <Inputs on_entity_update={on_entity_update} on_errors_update={on_errors_update}/>
-        }
-    }
 }
 
 #[function_component]
