@@ -33,13 +33,13 @@ pub enum CrudError {
 impl ResponseError for CrudError {}
 
 pub async fn insert<T>(
-    value: T,
+    value: &T,
     user_id: RecordId,
     query_builder: QueryBuilder,
     insert_user_id: bool,
 ) -> Result<RecordId, CrudError>
 where
-    T: Serialize + 'static,
+    T: Serialize,
 {
     let mut value = serde_json::to_value(value)?;
     if insert_user_id {
@@ -76,7 +76,7 @@ pub async fn select<T: DeserializeOwned>(
         .ok_or(CrudError::MissingRecord(id.clone()))?)
 }
 
-pub async fn select_raw_by_id<T: DeserializeOwned>(
+pub async fn select_unchecked_by_id<T: DeserializeOwned>(
     id: RecordId,
 ) -> Result<T, CrudError> {
     Ok(DB
@@ -98,7 +98,7 @@ pub async fn select_all<T: DeserializeOwned>(
         .take::<Vec<WithId<T>>>(0)?)
 }
 
-pub async fn select_all_raw<T: DeserializeOwned>(
+pub async fn select_all_unchecked<T: DeserializeOwned>(
     query: impl IntoQuery,
 ) -> Result<Vec<WithId<T>>, CrudError> {
     Ok(DB.query(query).await?.take::<Vec<WithId<T>>>(0)?)
@@ -106,10 +106,11 @@ pub async fn select_all_raw<T: DeserializeOwned>(
 
 pub async fn update(
     id: RecordId,
-    content_to_update: impl Serialize + 'static,
+    content_to_update: &(impl Serialize + 'static),
     user_id: RecordId,
     query_builder: QueryBuilder,
 ) -> Result<(), CrudError> {
+    let mut content_to_update = serde_json::to_value(content_to_update)?;
     DB.query(query_builder.update()?)
         .bind(("user_id", user_id))
         .bind(("id", id))

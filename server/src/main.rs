@@ -40,15 +40,6 @@ async fn main() -> std::io::Result<()> {
             validator: creds.validate()
         }),
         |cfg| {
-            cfg.service(hello_world).service(increment).route(
-                "/another_hello_world/",
-                web::get().to(|http_request: HttpRequest| async move {
-                    format!(
-                        "Hello enclosed world, you sent me a request to the following path {:?}",
-                        http_request.path()
-                    )
-                }),
-            );
             configure_endpoints(cfg);
             configure_enum_endpoints(cfg);
             cfg
