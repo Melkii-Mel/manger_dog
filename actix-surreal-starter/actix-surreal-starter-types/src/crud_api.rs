@@ -1,4 +1,4 @@
-﻿use derive_more::Display;
+use derive_more::Display;
 use crate::global_entities_storage;
 use serde::de::{DeserializeOwned, Error, Visitor};
 use serde::ser::SerializeTupleStruct;
@@ -7,7 +7,11 @@ use serde_json::Value;
 use std::fmt::Formatter;
 use std::marker::PhantomData;
 
-pub trait Entity {
+pub trait TableName {
+    fn table_name() -> &'static str;
+}
+
+pub trait Entity: TableName {
     type Error;
     fn table_name() -> &'static str;
     fn api_location() -> &'static str;
@@ -78,7 +82,7 @@ impl<T: Serialize> Serialize for RecordOf<T> {
     }
 }
 
-impl<'de, T: DeserializeOwned> Deserialize<'de> for RecordOf<T> {
+impl<'de, T: Deserialize<'de>> Deserialize<'de> for RecordOf<T> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,

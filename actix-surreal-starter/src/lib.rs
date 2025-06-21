@@ -11,6 +11,7 @@ mod server_starter;
 pub mod crud_ops;
 pub mod query_builder;
 pub mod static_files;
+pub mod crud_api;
 
 pub use crate::authentication::{LoginData, RegisterConfig, UserId};
 pub use actix_surreal_starter_types::*;
